@@ -1,18 +1,25 @@
-import { For, Component, createSignal } from "solid-js";
-import { Dynamic } from "solid-js/web";
-import { Node, Node as NodeType } from "./nodes";
+import { For, Component, createSignal, createMemo } from "solid-js";
+import { Node as NodeType } from "./nodes.types";
 
 import "./node.css";
-import AddNode from "./AddNode";
+import Edge from "./Edge";
 
 const Node: Component<{ node: NodeType, removeNode: Function }> = props => {
-  const [node, { setInputValue, getInput }] = props.node;
+  const [node, { setInputValue, setOutput, getInput }] = props.node;
+
+  switch(node.kind) {
+    case "add":
+      setOutput("sum", createMemo(() => getInput("a") + getInput("b")));
+      break;
+    case "subtract":
+      setOutput("difference", createMemo(() => getInput("a") - getInput("b")));
+      break;
+    case "multiply":
+      setOutput("product", createMemo(() => getInput("a") * getInput("b")));
+      break;
+  };
 
   let ref: HTMLDivElement | undefined = undefined;
-
-  const kind: Record<string, Component<{ node: Node }>> = {
-    add: AddNode,
-  };
 
   const [x, setX] = createSignal(0);
   const [y, setY] = createSignal(0);
@@ -40,26 +47,33 @@ const Node: Component<{ node: NodeType, removeNode: Function }> = props => {
       style={{
       "transform": `translate(${ x() }px, ${ y() }px)`,
     }}>
+      <p>{node.kind}</p>
       <button onClick={() => props.removeNode(node.id)}>X</button>
       <div class="inputs">
         <For each={Object.entries(node.inputs || {})}>
           {([socket, input]) => (
             <div class="input">
-              <div class="socket"></div>
+              <Edge node={props.node} socket={socket} />
               <label for={`${node.id}_input_${socket}`}>{socket}</label>
               <input
                 type="number"
                 id={`${node.id}_input_${socket}`}
-                name={socket}
-                readonly={input.source ? true : false}
+                name="a"
+                readonly={input.source !== null}
+                disabled={input.source !== null}
                 value={getInput(socket)}
                 onInput={e => setInputValue(socket, Number(e.currentTarget.value))} />
             </div>
           )}
         </For>
       </div>
-      <Dynamic component={kind[node.kind]} node={props.node} />
-      <pre>{JSON.stringify(node, null, 2)}</pre>
+      <div class="outputs">
+        <For each={Object.entries(node.outputs || {})}>
+          {([socket, output]) => (
+            <p><span>{socket}</span>{output}</p>
+          )}
+        </For>
+      </div>
     </div>
   );
 };
