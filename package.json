@@ -15,6 +15,7 @@
     "vite-plugin-solid": "^2.1.4"
   },
   "dependencies": {
+    "@solid-primitives/mouse": "^1.0.1",
     "solid-js": "next"
   }
 }

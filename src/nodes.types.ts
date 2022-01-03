@@ -11,7 +11,7 @@ export type Output = Accessor<any> | null;
 export type IO = {
   inputs?: Record<string, Input>;
   outputs?: Record<string, Output>;
-};
+} | null;
 
 export type NodeData = {
   readonly id: string;
@@ -23,6 +23,7 @@ export type Node = Readonly<[NodeData, {
   readonly setInputSource: (socket: string, source: Source) => void;
   readonly setOutput: (socket: string, value: Accessor<any>) => Accessor<any>;
   readonly getInput: (socket: string) => any;
+  readonly getInputs: () => Record<string, any>;
 }]>;
 
 export type NodesData = {

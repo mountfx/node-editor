@@ -1,4 +1,4 @@
-import { createUniqueId, Accessor } from "solid-js";
+import { createUniqueId, Accessor, createMemo } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 import { Source, IO, NodeData, Node, NodesData, Nodes } from "./nodes.types";
 
@@ -50,42 +50,45 @@ const getIO = (kind: string): IO => {
           y: { value: null, source: null },
         },
       };
-  };
-  return {
-    inputs: undefined,
-    outputs: undefined,
-  };
+  }
+  return null;
 };
 
 export function createEditor(): Nodes {
   const [nodes, setNodes] = createStore<NodesData>({});
-  
+
   function createNode(kind: string): Node {
     const id = createUniqueId();
     const io = getIO(kind);
     const [node, setNode] = createStore<NodeData>({ id, kind, ...io });
 
     function setInputValue(socket: string, value: any) {
-      setNode(produce((n: NodeData) => {
-        if (!n.inputs) return;
-        n.inputs[socket].value = value;
-      }));
-    };
+      setNode(
+        produce((n: NodeData) => {
+          if (!n.inputs) return;
+          n.inputs[socket].value = value;
+        })
+      );
+    }
 
     function setInputSource(socket: string, source: Source) {
-      setNode(produce((n: NodeData) => {
-        if (!n.inputs) return;
-        n.inputs[socket].source = source;
-      }));
-    };
+      setNode(
+        produce((n: NodeData) => {
+          if (!n.inputs) return;
+          n.inputs[socket].source = source;
+        })
+      );
+    }
 
     function setOutput(socket: string, value: Accessor<any>) {
-      setNode(produce((n: NodeData) => {
-        if (!n.outputs) return;
-        n.outputs[socket] = value;
-      }));
+      setNode(
+        produce((n: NodeData) => {
+          if (!n.outputs) return;
+          n.outputs[socket] = value;
+        })
+      );
       return value;
-    };
+    }
 
     function getInput(socket: string) {
       if (!node.inputs) return;
@@ -95,21 +98,32 @@ export function createEditor(): Nodes {
       if (!nodes[source.id]) {
         setInputSource(socket, null);
         return input.value;
-      };
+      }
       const [sourceNode] = nodes[source.id];
       if (!sourceNode.outputs) return;
       return sourceNode.outputs[source.output]?.();
-    };
+    }
 
-    const newNode = [node, { setInputValue, setInputSource, setOutput, getInput }] as const;
+    function getInputs() {
+      const entries = Object.keys(node.inputs || {}).map((socket) => [
+        socket,
+        createMemo(() => getInput(socket)),
+      ]);
+      return Object.fromEntries(entries);
+    }
 
-    setNodes(produce((n: NodesData) => n[id] = newNode));
+    const newNode = [
+      node,
+      { setInputValue, setInputSource, setOutput, getInput, getInputs },
+    ] as const;
+
+    setNodes(produce((n: NodesData) => (n[id] = newNode)));
     return newNode;
-  };
+  }
 
   function removeNode(id: string) {
     setNodes(produce((n: NodesData) => delete n[id]));
-  };
+  }
 
   return [nodes, { createNode, removeNode }] as const;
-};
+}
