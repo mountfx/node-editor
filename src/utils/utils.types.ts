@@ -1,0 +1,1 @@
+export type SignalSetter<T> = T extends Function ? never : T | ((prev: T) => T);

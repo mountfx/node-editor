@@ -1,14 +1,12 @@
-import { For, Component, createSignal, createMemo } from "solid-js";
+import { For, Component, createMemo } from "solid-js";
 import { Node as NodeType } from "./nodes.types";
 
 import "./node.css";
-import Edge from "./Edge";
 
 const Node: Component<{ node: NodeType; removeNode: Function }> = (props) => {
   const [node, { setInputValue, setOutput, getInput, getInputs }] = props.node;
-  const { a, b } = getInputs();
 
-  // let ref: HTMLDivElement;
+  const { a, b } = getInputs();
 
   switch (node.kind) {
     case "add":
@@ -29,33 +27,19 @@ const Node: Component<{ node: NodeType; removeNode: Function }> = (props) => {
         createMemo(() => a() * b())
       );
       break;
-  }
-
-  const [x, setX] = createSignal(0);
-  const [y, setY] = createSignal(0);
-
-  function handleMouseDown(e: MouseEvent) {
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-  }
-
-  function handleMouseMove(e: MouseEvent) {
-    setX((x) => x + e.movementX);
-    setY((y) => y + e.movementY);
-  }
-
-  function handleMouseUp(e: MouseEvent) {
-    window.removeEventListener("mousemove", handleMouseMove);
-    window.removeEventListener("mouseup", handleMouseUp);
+    case "divide":
+      setOutput(
+        "quotient",
+        createMemo(() => a() / b())
+      );
+      break;
   }
 
   return (
     <div
-      // ref={(r) => (ref = r)}
-      onMouseDown={handleMouseDown}
       class="node"
       style={{
-        transform: `translate(${x()}px, ${y()}px)`,
+        transform: `translate(${node.position.x}px, ${node.position.y}px)`,
       }}
     >
       <p>{node.kind}</p>
@@ -64,7 +48,6 @@ const Node: Component<{ node: NodeType; removeNode: Function }> = (props) => {
         <For each={Object.entries(node.inputs || {})}>
           {([socket, input]) => (
             <div class="input">
-              <Edge node={props.node} socket={socket} />
               <label for={`${node.id}_input_${socket}`}>{socket}</label>
               <input
                 type="number"
