@@ -14,10 +14,10 @@ export type Camera = [
 
 export function createCamera(
   initialPosition = { x: 0, y: 0 },
-  initialZoom = 1
+  initialScale = 1
 ): Camera {
   const [position, setPosition] = createSignal(initialPosition);
-  const [scale, setScale] = createSignal(initialZoom);
+  const [scale, setScale] = createSignal(initialScale);
 
   function transform(position: SignalSetter<{ x: number; y: number }>) {
     setPosition(position);

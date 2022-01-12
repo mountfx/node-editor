@@ -1,55 +1,91 @@
-import { Component } from "solid-js";
+/* --- Utils --- */
+import { PropsWithChildren } from "solid-js";
 import { StoreSetter } from "solid-js/store";
-import { Node } from "../nodes/nodes.types";
+import { withinThreshold } from "../utils/utils";
+
+/* --- Canvas --- */
 import { Camera } from "./createCamera";
 import { Focus } from "./createFocus";
 import { Selection } from "./createSelection";
 
-const Canvas: Component<{
+/* --- CSS --- */
+import "./canvas.css";
+
+type Props<T> = {
   camera: Camera;
-  focus: Focus<Node | null>;
-  selection: Selection<Node>;
+  focus: Focus<T | null>;
+  selection: Selection<T>;
   methods: {
-    transform: (
-      node: Node,
-      position: StoreSetter<{ x: number; y: number }>
-    ) => void;
+    transform: (id: T, position: StoreSetter<{ x: number; y: number }>) => void;
   };
-}> = (props) => {
+};
+
+function Canvas<T>(props: PropsWithChildren<Props<T>>) {
   const [{ position }, { transform }] = props.camera;
   const [focused, { focus }] = props.focus;
   const [selected, { select }] = props.selection;
 
-  let focusedNodeCache: Node | null = null;
+  /* --- Cache --- */
+  let focusedNodeCache: T | null;
+  let selectedNodeCache: T[];
+  let dragStartPosition: { x: number; y: number };
+  let dragging = false;
 
+  /* --- Mouse Over Event --- */
   function handleMouseOver(e: MouseEvent) {
     focus(null);
   }
 
+  /* --- Mouse Down Event --- */
   function handleMouseDown(e: MouseEvent) {
+    if (e.buttons === 4) e.preventDefault();
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
 
+    dragStartPosition = { x: e.clientX, y: e.clientY };
+
     focusedNodeCache = focused();
-    if (focusedNodeCache) return select([focusedNodeCache]);
-    return select([]);
+    if (focusedNodeCache) {
+      select([focusedNodeCache]);
+    } else {
+      select([]);
+    }
+    selectedNodeCache = selected();
   }
 
+  /* --- Mouse Move Event --- */
   function handleMouseMove(e: MouseEvent) {
-    if (e.buttons === 1) {
-      for (const node of selected()) {
-        props.methods.transform(node, ({ x, y }) => ({
-          x: x + e.movementX,
-          y: y + e.movementY,
-        }));
+    // Drag only if the mouse has moved more than the threshold
+    // Return early if the mouse hasn't moved
+    if (!dragging) {
+      if (
+        !withinThreshold(e.clientX, dragStartPosition.x, 4) ||
+        !withinThreshold(e.clientY, dragStartPosition.y, 4)
+      ) {
+        dragging = true;
       }
       return;
     }
+
+    if (e.buttons === 1) {
+      for (const node of selectedNodeCache) {
+        props.methods.transform(node, ({ x, y }) => {
+          return {
+            x: x + e.movementX,
+            y: y + e.movementY,
+          };
+        });
+      }
+      return;
+    }
+
     if (e.buttons !== 4) return;
     transform(({ x, y }) => ({ x: x + e.movementX, y: y + e.movementY }));
   }
 
+  /* --- Mouse Up Event --- */
   function handleMouseUp() {
+    dragging = false;
     window.removeEventListener("mousemove", handleMouseMove);
     window.removeEventListener("mouseup", handleMouseUp);
   }
@@ -57,26 +93,17 @@ const Canvas: Component<{
   return (
     <div
       id="canvas"
-      style={{
-        height: "600px",
-        position: "relative",
-        overflow: "hidden",
-        border: "1px solid black",
-      }}
       onMouseOver={handleMouseOver}
       onMouseDown={handleMouseDown}
     >
       <div
         id="origin"
-        style={{
-          position: "absolute",
-          transform: `translate(${position().x}px, ${position().y}px)`,
-        }}
+        style={{ transform: `translate(${position().x}px, ${position().y}px)` }}
       >
         {props.children}
       </div>
     </div>
   );
-};
+}
 
 export default Canvas;

@@ -1,21 +1,33 @@
-import { Component } from "solid-js";
-import { Node as NodeType } from "../nodes/nodes.types";
+/* --- Utils --- */
+import { PropsWithChildren } from "solid-js";
+import { SignalSetter } from "../utils/utils.types";
+
+/* --- Canvas --- */
 import { Focus } from "./createFocus";
 
-const Node: Component<{ node: NodeType, focus: Focus<NodeType> }> = props => {
+function Node<T>(
+  props: PropsWithChildren<{
+    id: SignalSetter<T>;
+    focus: Focus<T>;
+    position: { x: number; y: number };
+  }>
+) {
   const [_, { focus }] = props.focus;
 
   function handleMouseOver(e: MouseEvent) {
     e.stopPropagation();
-    focus(props.node);
-  };
-
+    focus(props.id);
+  }
   return (
-    // style={{ display: "contents" }}
-    <div onMouseOver={handleMouseOver}>
+    <div
+      onMouseOver={handleMouseOver}
+      style={{
+        transform: `translate(${props.position.x}px, ${props.position.y}px)`,
+      }}
+    >
       {props.children}
     </div>
   );
-};
+}
 
 export default Node;

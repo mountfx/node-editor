@@ -1,49 +1,69 @@
-import { For, type Component } from "solid-js";
+/* --- Utils --- */
+import { Component, For } from "solid-js";
 
-import { createNodes } from "./nodes/createNodes";
-import type { Node as NodeType } from "./nodes/nodes.types";
+/* --- Nodes --- */
+import { createEditor } from "./node_editor/store";
+import { defaultNodes, defaultSchema } from "./node_editor/nodes";
+import Node from "./node_editor/Node";
+import type { LtnNode } from "./node_editor/store.types";
 
-// import Node from "./Node";
-import Node from "./nodes/Node";
-
-// CANVAS
+/* --- Canvas --- */
 import { createSelection } from "./canvas/createSelection";
 import { createCamera } from "./canvas/createCamera";
 import { createFocus } from "./canvas/createFocus";
 import Canvas from "./canvas/Canvas";
 import CanvasNode from "./canvas/CanvasNode";
 
-const App: Component = () => {
-  const [editor, { createNode, removeNode }] = createNodes();
+export const schema = {
+  multiply: {
+    inputs: {
+      a: { value: 0 },
+      b: { value: 0 },
+    },
+    outputs: {
+      product: 0,
+    },
+  },
+};
 
+export const [editor, { addNode, removeNode, useNode }] = createEditor({
+  ...schema,
+  ...defaultSchema,
+});
+
+const App: Component = () => {
   const camera = createCamera();
-  const focus = createFocus<NodeType | null>(null);
-  const selection = createSelection<NodeType>();
+  const focus = createFocus<LtnNode | null>(null);
+  const selection = createSelection<LtnNode>();
 
   return (
-    <div id="editor">
-      <button onClick={() => console.log(editor)}>Log</button>
-      <button onClick={() => createNode("add")}>Add Add Node</button>
-      <button onClick={() => createNode("subtract")}>Add Subtract Node</button>
-      <button onClick={() => createNode("multiply")}>Add Multiply Node</button>
-      <button onClick={() => createNode("divide")}>Add Divide Node</button>
+    <>
+      <div style={{ position: "absolute", "z-index": 1 }}>
+        <button onClick={() => console.log(editor)}>Log</button>
+        <button onClick={() => addNode("add")}>Add Add Node</button>
+        <button onClick={() => addNode("subtract")}>Add Subtract Node</button>
+        <button onClick={() => addNode("multiply")}>
+          Add Multiply Node (Custom)
+        </button>
+        <button onClick={() => addNode("divide")}>Add Divide Node</button>
+      </div>
       <Canvas
         camera={camera}
         focus={focus}
         selection={selection}
         methods={{
-          transform: ([_, { setPosition }], position) => setPosition(position),
+          transform: (node, position) => useNode(node).setPosition(position),
         }}
       >
         <For each={Object.values(editor)}>
           {(node) => (
-            <CanvasNode node={node} focus={focus}>
-              <Node node={node} removeNode={removeNode} />
+            <CanvasNode id={node} focus={focus} position={node.position}>
+              <Node node={node} components={{ ...defaultNodes }} />
             </CanvasNode>
           )}
         </For>
       </Canvas>
-    </div>
+    </>
   );
 };
 
