@@ -1,9 +1,9 @@
 /* --- Utils --- */
 import { createSignal, PropsWithChildren } from "solid-js";
-import { SignalSetter } from "../utils/utils.types";
+import { SignalSetter } from "../utils/types";
 
 /* --- Canvas --- */
-import { Focus } from "./createFocus";
+import { Focus } from "./focus";
 
 function Node<T>(
   props: PropsWithChildren<{

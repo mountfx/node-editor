@@ -1,12 +1,12 @@
 import { createUniqueId, batch } from "solid-js";
 import { createStore, StoreSetter } from "solid-js/store";
-import { LtnEditor, LtnNode, LtnSchema } from "./store.types";
+import { LtnNodes, LtnNode, LtnSchema } from "./types";
 
-export function createEditor<S extends LtnSchema>(
+export function createNodes<S extends LtnSchema>(
   schema: S,
   initialNodes = {}
 ) {
-  const [nodes, setNodes] = createStore<LtnEditor>(initialNodes);
+  const [nodes, setNodes] = createStore<LtnNodes>(initialNodes);
 
   function addNode<K extends keyof S>(kind: K) {
     const id = createUniqueId();

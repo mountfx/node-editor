@@ -1,9 +1,9 @@
 import { Component } from "solid-js";
 import { Dynamic } from "solid-js/web";
-import { LtnNode } from "./store.types";
+import { LtnNode } from "./types";
 
 import "./node.css";
-import DefaultNode from "./nodes/DefaultNode";
+import DefaultNode from "./default/DefaultNode";
 
 function Node<N extends LtnNode>(props: {
   node: N;

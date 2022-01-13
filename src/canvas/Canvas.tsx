@@ -1,12 +1,12 @@
 /* --- Utils --- */
 import { PropsWithChildren } from "solid-js";
 import { StoreSetter } from "solid-js/store";
-import { withinThreshold } from "../utils/utils";
+import { withinThreshold } from "../utils";
 
 /* --- Canvas --- */
-import { Camera } from "./createCamera";
-import { Focus } from "./createFocus";
-import { Selection } from "./createSelection";
+import type { Camera } from "./camera";
+import type { Focus } from "./focus";
+import type { Selection } from "./selection";
 
 /* --- CSS --- */
 import "./canvas.css";

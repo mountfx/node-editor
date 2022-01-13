@@ -2,15 +2,15 @@
 import { Component, For } from "solid-js";
 
 /* --- Nodes --- */
-import { createEditor } from "./node_editor/store";
-import { defaultNodes, defaultSchema } from "./node_editor/nodes";
-import Node from "./node_editor/Node";
-import type { LtnNode } from "./node_editor/store.types";
+import { createNodes } from "./nodes";
+import { defaultNodes, defaultSchema } from "./nodes/default";
+import Node from "./nodes/Node";
+import type { LtnNode } from "./nodes/types";
 
 /* --- Canvas --- */
-import { createSelection } from "./canvas/createSelection";
-import { createCamera } from "./canvas/createCamera";
-import { createFocus } from "./canvas/createFocus";
+import { createSelection } from "./canvas/selection";
+import { createCamera } from "./canvas/camera";
+import { createFocus } from "./canvas/focus";
 import Canvas from "./canvas/Canvas";
 import CanvasNode from "./canvas/CanvasNode";
 
@@ -26,7 +26,7 @@ export const schema = {
   },
 };
 
-export const [editor, { addNode, removeNode, useNode }] = createEditor({
+export const [editor, { addNode, removeNode, useNode }] = createNodes({
   ...schema,
   ...defaultSchema,
 });

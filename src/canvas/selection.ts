@@ -1,5 +1,5 @@
 import { Accessor, createSignal } from "solid-js";
-import { SignalSetter } from "../utils/utils.types";
+import { SignalSetter } from "../utils/types";
 
 export type Selection<T> = [Accessor<T[]>, { select: (items: SignalSetter<T[]>) => void }];
 

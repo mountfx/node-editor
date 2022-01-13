@@ -3,7 +3,7 @@ import { For, Component } from "solid-js";
 
 // TODO: These methods needs to be passed down via props or by using context.
 import { useNode, removeNode } from "../../App";
-import type { LtnNode } from "../store.types";
+import type { LtnNode } from "../types";
 // import Socket from "./Socket";
 
 const DefaultNode: Component<{ node: LtnNode }> = (props) => {

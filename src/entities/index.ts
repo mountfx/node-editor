@@ -1,6 +1,6 @@
 import { createUniqueId } from "solid-js";
 import { createStore, StoreSetter } from "solid-js/store";
-import { LtnSchema, LtnWorld, LtnEntity } from "./store.types";
+import { LtnSchema, LtnWorld, LtnEntity } from "./types";
 
 export function createWorld<S extends LtnSchema>(schema: S) {
   const [world, setWorld] = createStore<LtnWorld>({});
