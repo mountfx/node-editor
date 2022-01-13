@@ -3,6 +3,7 @@ import { Component, createEffect } from "solid-js";
 
 // TODO: These methods needs to be passed down via props or by using context.
 import { useNode } from "../../App";
+
 import type { GetNode } from "../store.types";
 
 import { defaultSchema } from ".";

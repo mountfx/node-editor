@@ -4,6 +4,7 @@ import { For, Component } from "solid-js";
 // TODO: These methods needs to be passed down via props or by using context.
 import { useNode, removeNode } from "../../App";
 import type { LtnNode } from "../store.types";
+// import Socket from "./Socket";
 
 const DefaultNode: Component<{ node: LtnNode }> = (props) => {
   const { setInput } = useNode(props.node);
@@ -15,8 +16,9 @@ const DefaultNode: Component<{ node: LtnNode }> = (props) => {
       <div class="inputs">
         <For each={Object.keys(props.node.inputs || {})}>
           {(key) => (
-            <label for={`${props.node.id}_input_${key}`}>
-              {key}
+            <div>
+              {/* <Socket /> */}
+              <label for={`${props.node.id}_input_${key}`}>{key}</label>
               <input
                 type="number"
                 id={`${props.node.id}_input_${key}`}
@@ -25,7 +27,7 @@ const DefaultNode: Component<{ node: LtnNode }> = (props) => {
                 value={props.node.inputs?.[key].value}
                 onInput={(e) => setInput(key, Number(e.currentTarget.value))}
               />
-            </label>
+            </div>
           )}
         </For>
       </div>

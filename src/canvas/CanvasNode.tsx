@@ -1,5 +1,5 @@
 /* --- Utils --- */
-import { PropsWithChildren } from "solid-js";
+import { createSignal, PropsWithChildren } from "solid-js";
 import { SignalSetter } from "../utils/utils.types";
 
 /* --- Canvas --- */
@@ -13,6 +13,7 @@ function Node<T>(
   }>
 ) {
   const [_, { focus }] = props.focus;
+  const [_ref, setRef] = createSignal<HTMLDivElement | undefined>(undefined);
 
   function handleMouseOver(e: MouseEvent) {
     e.stopPropagation();
@@ -20,6 +21,7 @@ function Node<T>(
   }
   return (
     <div
+      ref={setRef}
       onMouseOver={handleMouseOver}
       style={{
         transform: `translate(${props.position.x}px, ${props.position.y}px)`,

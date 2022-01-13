@@ -34,6 +34,9 @@ export const [editor, { addNode, removeNode, useNode }] = createEditor({
 const App: Component = () => {
   const camera = createCamera();
   const focus = createFocus<LtnNode | null>(null);
+
+  // TODO: Make selection a map of any and HTMLDivElement
+  // createSignal<Map<LtnNode, HTMLDivElement>>();
   const selection = createSelection<LtnNode>();
 
   return (
