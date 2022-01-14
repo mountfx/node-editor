@@ -20,7 +20,6 @@ export type LtnNode = {
   >;
   outputs?: Record<string, any>;
   context?: Record<string, any>;
-  compute?: Record<string, (inputs: Record<string, any>) => any>;
 };
 
 export type GetNode<
@@ -38,8 +37,7 @@ export type GetNode<
       };
     };
     outputs: S[K]["outputs"];
-    // TODO: Add "context" and "compute"
+    // TODO: Add "context"
     context: any;
-    compute: any;
   };
 }[K];

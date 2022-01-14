@@ -24,7 +24,6 @@ export function createNodes<S extends LtnSchema>(schema: S, initialNodes = {}) {
         title: schema[kind].context?.title || kind,
         position: { x: 0, y: 0 },
       },
-      compute: schema[kind].compute,
       ...io,
     };
     setNodes(id, node);
@@ -38,6 +37,7 @@ export function createNodes<S extends LtnSchema>(schema: S, initialNodes = {}) {
   function useNode<N extends LtnNode>(node: N) {
     type Inputs = N["inputs"];
     type Outputs = N["outputs"];
+    type Compute = S[N["kind"]]["compute"];
     type GetInput<I extends keyof Inputs> = Inputs[I] extends { value: any }
       ? Inputs[I]["value"]
       : never;
@@ -91,13 +91,21 @@ export function createNodes<S extends LtnSchema>(schema: S, initialNodes = {}) {
         : Record<string, any>;
     }
 
+    // TODO: Fix return type to only return the type of the computed output
+    function compute<C extends Compute>(
+      output: C extends Compute ? keyof C : never
+    ): Outputs[keyof Outputs] {
+      return schema[node.kind].compute?.[output as string](getInputs());
+    }
+
     return {
       setInput,
       setSource,
       setOutput,
+      setContext,
       getInput,
       getInputs,
-      setContext,
+      compute,
     };
   }
 

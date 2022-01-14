@@ -7,11 +7,12 @@ import type { LtnNode } from "../types";
 // import Socket from "./Socket";
 
 const DefaultNode: Component<{ node: LtnNode }> = (props) => {
-  const { setInput, getInputs, setOutput } = useNode(props.node);
+  const { setInput, setOutput, compute } = useNode(props.node);
 
-  for (const output in props.node.compute) {
+  for (const output in props.node.outputs) {
     createEffect(() => {
-      setOutput(output, props.node.compute?.[output](getInputs()));
+      const result = compute(output);
+      if (result) setOutput(output, result);
     });
   }
 
