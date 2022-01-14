@@ -1,17 +1,32 @@
 import { createUniqueId, batch } from "solid-js";
-import { createStore, StoreSetter } from "solid-js/store";
+import { createStore } from "solid-js/store";
 import { LtnNodes, LtnNode, LtnSchema } from "./types";
 
-export function createNodes<S extends LtnSchema>(
-  schema: S,
-  initialNodes = {}
-) {
+export function createNodes<S extends LtnSchema>(schema: S, initialNodes = {}) {
   const [nodes, setNodes] = createStore<LtnNodes>(initialNodes);
 
   function addNode<K extends keyof S>(kind: K) {
     const id = createUniqueId();
-    const io: S[K] = JSON.parse(JSON.stringify(schema[kind]));
-    const node = { id, kind, position: { x: 0, y: 0 }, ...io };
+    const io: S[K] = JSON.parse(
+      JSON.stringify({
+        inputs: schema[kind].inputs,
+        outputs: schema[kind].outputs,
+      })
+    );
+
+    // TODO: Move position into "context"
+    // TODO: Add title to "context"
+    // TODO: Context potentionally has to be serialized
+    const node = {
+      id,
+      kind,
+      context: {
+        title: schema[kind].context?.title || kind,
+        position: { x: 0, y: 0 },
+      },
+      compute: schema[kind].compute,
+      ...io,
+    };
     setNodes(id, node);
     return node;
   }
@@ -27,13 +42,6 @@ export function createNodes<S extends LtnSchema>(
       ? Inputs[I]["value"]
       : never;
 
-    // TODO: Check if socket type "string" and value type "any" are correct.
-    // Otherwise use this definition:
-    /*
-    function setInput<I extends keyof Inputs>(socket: I, value: GetInput<I>) {
-      setNodes(node.id, "inputs", socket as any, "value" as any, value);
-    }
-    */
     function setInput<I extends keyof Inputs | keyof any>(
       socket: I,
       value: GetInput<I extends keyof Inputs ? I : any>
@@ -48,8 +56,16 @@ export function createNodes<S extends LtnSchema>(
       setNodes(node.id, "inputs", socket as any, "source", source);
     }
 
-    function setOutput<O extends keyof Outputs>(socket: O, output: Outputs[O]) {
+    function setOutput<O extends keyof Outputs | keyof any>(
+      socket: O,
+      output: Outputs[O extends keyof Outputs ? O : any]
+    ) {
       setNodes(node.id, "outputs", socket as any, output);
+    }
+
+    // TODO: Make this typesafe
+    function setContext(key: string, value: any) {
+      setNodes(node.id, "context", key, value);
     }
 
     function getInput(socket: keyof Inputs) {
@@ -65,11 +81,24 @@ export function createNodes<S extends LtnSchema>(
       });
     }
 
-    function setPosition(position: StoreSetter<{ x: number; y: number }>) {
-      setNodes(node.id, "position", position);
+    function getInputs() {
+      const entries = Object.keys(node.inputs || {}).map((socket) => [
+        socket,
+        getInput(socket as keyof Inputs),
+      ]);
+      return Object.fromEntries(entries) as Inputs extends Record<string, any>
+        ? Inputs
+        : Record<string, any>;
     }
 
-    return { setInput, setSource, setOutput, getInput, setPosition };
+    return {
+      setInput,
+      setSource,
+      setOutput,
+      getInput,
+      getInputs,
+      setContext,
+    };
   }
 
   return [nodes, { addNode, removeNode, useNode }] as const;

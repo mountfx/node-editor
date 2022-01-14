@@ -1,5 +1,5 @@
 /* --- Utils --- */
-import { For, Component } from "solid-js";
+import { For, Component, createEffect } from "solid-js";
 
 // TODO: These methods needs to be passed down via props or by using context.
 import { useNode, removeNode } from "../../App";
@@ -7,7 +7,13 @@ import type { LtnNode } from "../types";
 // import Socket from "./Socket";
 
 const DefaultNode: Component<{ node: LtnNode }> = (props) => {
-  const { setInput } = useNode(props.node);
+  const { setInput, getInputs, setOutput } = useNode(props.node);
+
+  for (const output in props.node.compute) {
+    createEffect(() => {
+      setOutput(output, props.node.compute?.[output](getInputs()));
+    });
+  }
 
   return (
     <>
