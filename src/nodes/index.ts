@@ -92,7 +92,7 @@ export function createNodes<S extends LtnSchema>(schema: S, initialNodes = {}) {
     }
 
     // TODO: Fix return type to only return the type of the computed output
-    function compute<C extends Compute>(
+    function computeOutput<C extends Compute>(
       output: C extends Compute ? keyof C : never
     ): Outputs[keyof Outputs] {
       return schema[node.kind].compute?.[output as string](getInputs());
@@ -105,7 +105,7 @@ export function createNodes<S extends LtnSchema>(schema: S, initialNodes = {}) {
       setContext,
       getInput,
       getInputs,
-      compute,
+      computeOutput,
     };
   }
 
