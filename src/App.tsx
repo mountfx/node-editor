@@ -32,7 +32,7 @@ export const [nodes, { addNode, removeNode, useNode }] = createNodes({
 
 const App: Component = () => {
   const camera = createCamera();
-  const focus = createFocus<LtnNode | null>(null);
+  const focus = createFocus<LtnNode>(null);
 
   // TODO: Make selection a map of any and HTMLDivElement
   // createSignal<Map<LtnNode, HTMLDivElement>>();

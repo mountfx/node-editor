@@ -1,23 +1,23 @@
 /* --- Utils --- */
 import { createSignal, PropsWithChildren } from "solid-js";
-import { SignalSetter } from "../utils/types";
 
 /* --- Canvas --- */
 import { Focus } from "./focus";
 
 function Node<T>(
   props: PropsWithChildren<{
-    id: SignalSetter<T>;
+    id: T;
     focus: Focus<T>;
     position: { x: number; y: number };
   }>
 ) {
   const [_, { focus }] = props.focus;
-  const [_ref, setRef] = createSignal<HTMLDivElement | undefined>(undefined);
+  const [ref, setRef] = createSignal<HTMLDivElement | undefined>(undefined);
 
   function handleMouseOver(e: MouseEvent) {
     e.stopPropagation();
-    focus(props.id);
+    const el = ref();
+    if (el) focus([props.id, el]);
   }
   return (
     <div

@@ -13,7 +13,7 @@ import "./canvas.css";
 
 type Props<T> = {
   camera: Camera;
-  focus: Focus<T | null>;
+  focus: Focus<T>;
   selection: Selection<T>;
   methods: {
     transform: (id: T, position: StoreSetter<{ x: number; y: number }>) => void;
@@ -26,7 +26,7 @@ function Canvas<T>(props: PropsWithChildren<Props<T>>) {
   const [selected, { select }] = props.selection;
 
   /* --- Cache --- */
-  let focusedNodeCache: T | null;
+  let focusedNodeCache: [T, HTMLDivElement] | null;
   let selectedNodeCache: T[];
   let dragStartPosition: { x: number; y: number };
   let dragging = false;
@@ -46,7 +46,7 @@ function Canvas<T>(props: PropsWithChildren<Props<T>>) {
 
     focusedNodeCache = focused();
     if (focusedNodeCache) {
-      select([focusedNodeCache]);
+      select([focusedNodeCache[0]]);
     } else {
       select([]);
     }

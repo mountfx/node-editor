@@ -1,12 +1,13 @@
 import { Accessor, createSignal } from "solid-js";
-import { SignalSetter } from "../utils/types";
 
-export type Focus<T> = Readonly<[Accessor<T>, { focus: (item: SignalSetter<T>) => void }]>;
+export type Focus<T> = Readonly<
+  [Accessor<[T, HTMLDivElement] | null>, { focus: (item: [T, HTMLDivElement] | null) => void }]
+>;
 
-export function createFocus<Item>(initialFocus: Item) {
+export function createFocus<F>(initialFocus: [F, HTMLDivElement] | null) {
   const [focused, setFocused] = createSignal(initialFocus);
 
-  function focus(item: SignalSetter<Item>) {
+  function focus(item: [F, HTMLDivElement] | null) {
     setFocused(item);
   }
 
