@@ -14,7 +14,22 @@ import { createFocus } from "./canvas/focus";
 import Canvas from "./canvas/Canvas";
 import CanvasNode from "./canvas/CanvasNode";
 
-export const schema = {
+// const customSchema = {
+//   multiply: {
+//     inputs: {
+//       a: { value: 0 },
+//       b: { value: 0 },
+//     },
+//     outputs: {
+//       product: 0,
+//     },
+//     compute: {
+//       product: ({ a, b }) => a * b,
+//     },
+//   },
+// };
+
+export const [editor, { addNode, removeNode, useNode }] = createNodes({
   multiply: {
     inputs: {
       a: { value: 0 },
@@ -23,11 +38,10 @@ export const schema = {
     outputs: {
       product: 0,
     },
+    compute: {
+      product: (inputs) => inputs.a * inputs.b,
+    },
   },
-};
-
-export const [editor, { addNode, removeNode, useNode }] = createNodes({
-  ...schema,
   ...defaultSchema,
 });
 
@@ -55,12 +69,12 @@ const App: Component = () => {
         focus={focus}
         selection={selection}
         methods={{
-          transform: (node, position) => useNode(node).setPosition(position),
+          transform: (node, position) => useNode(node).setContext("position", position),
         }}
       >
         <For each={Object.values(editor)}>
           {(node) => (
-            <CanvasNode id={node} focus={focus} position={node.position}>
+            <CanvasNode id={node} focus={focus} position={node.context?.position}>
               <Node node={node} components={{ ...defaultNodes }} />
             </CanvasNode>
           )}
