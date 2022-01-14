@@ -14,22 +14,7 @@ import { createFocus } from "./canvas/focus";
 import Canvas from "./canvas/Canvas";
 import CanvasNode from "./canvas/CanvasNode";
 
-// const customSchema = {
-//   multiply: {
-//     inputs: {
-//       a: { value: 0 },
-//       b: { value: 0 },
-//     },
-//     outputs: {
-//       product: 0,
-//     },
-//     compute: {
-//       product: ({ a, b }) => a * b,
-//     },
-//   },
-// };
-
-export const [editor, { addNode, removeNode, useNode }] = createNodes({
+export const [nodes, { addNode, removeNode, useNode }] = createNodes({
   multiply: {
     inputs: {
       a: { value: 0 },
@@ -39,7 +24,7 @@ export const [editor, { addNode, removeNode, useNode }] = createNodes({
       product: 0,
     },
     compute: {
-      product: (inputs) => inputs.a * inputs.b,
+      product: ({ a, b }) => a * b,
     },
   },
   ...defaultSchema,
@@ -56,7 +41,8 @@ const App: Component = () => {
   return (
     <>
       <div style={{ position: "absolute", "z-index": 1 }}>
-        <button onClick={() => console.log(editor)}>Log</button>
+        <button onClick={() => console.log(nodes)}>Log</button>
+        <button onClick={() => console.log(JSON.stringify(nodes, null, 2))}>Log Raw</button>
         <button onClick={() => addNode("add")}>Add Add Node</button>
         <button onClick={() => addNode("subtract")}>Add Subtract Node</button>
         <button onClick={() => addNode("multiply")}>
@@ -69,12 +55,17 @@ const App: Component = () => {
         focus={focus}
         selection={selection}
         methods={{
-          transform: (node, position) => useNode(node).setContext("position", position),
+          transform: (node, position) =>
+            useNode(node).setContext("position", position),
         }}
       >
-        <For each={Object.values(editor)}>
+        <For each={Object.values(nodes)}>
           {(node) => (
-            <CanvasNode id={node} focus={focus} position={node.context?.position}>
+            <CanvasNode
+              id={node}
+              focus={focus}
+              position={node.context?.position}
+            >
               <Node node={node} components={{ ...defaultNodes }} />
             </CanvasNode>
           )}

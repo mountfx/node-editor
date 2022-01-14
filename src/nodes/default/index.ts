@@ -19,7 +19,7 @@ export const defaultSchema = {
       difference: 0,
     },
     compute: {
-      difference: (inputs: any) => inputs.a - inputs.b,
+      difference: ({ a, b }: any) => a - b,
     },
   },
   divide: {
