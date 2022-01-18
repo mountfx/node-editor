@@ -87,8 +87,8 @@ function Canvas<T extends PropsWithChildren<Props>>(props: T) {
     e: MouseEvent
   ) {
     return {
-      x: position.x - e.movementX,
-      y: position.y - e.movementY,
+      x: position.x + e.movementX,
+      y: position.y + e.movementY,
     };
   }
 
