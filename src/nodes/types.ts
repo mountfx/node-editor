@@ -1,3 +1,5 @@
+import { Component } from "solid-js";
+
 // TODO: Compute types must depend on inputs and outputs
 export type LtnSchema = Record<
   string,
@@ -6,6 +8,8 @@ export type LtnSchema = Record<
     outputs?: Record<string, any>;
     compute?: Record<string, (inputs: Record<string, any>) => any>;
     context?: Record<string, any>;
+    // TODO: Can I remove any here?
+    component?: Component<{ node: LtnNode | any }>;
   }
 >;
 

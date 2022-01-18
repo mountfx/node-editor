@@ -1,0 +1,11 @@
+#select {
+  position: absolute;
+  box-shadow: inset 0 0 0 1px green;
+  pointer-events: none;
+}
+
+#focus {
+  position: absolute;
+  box-shadow: inset 0 0 0 2px var(--ui-color-accent);
+  pointer-events: none;
+}

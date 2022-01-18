@@ -1,10 +1,11 @@
 /* --- Utils --- */
-import { For, Component, createEffect } from "solid-js";
+import { For, Component, createEffect, useContext } from "solid-js";
 
 // TODO: These methods needs to be passed down via props or by using context.
 import { useNode, removeNode } from "../../App";
 import type { LtnNode } from "../types";
-// import Socket from "./Socket";
+import Socket from "../Socket";
+import { CanvasContext } from "../../canvas";
 
 const DefaultNode: Component<{ node: LtnNode }> = (props) => {
   const { setInput, setOutput, computeOutput } = useNode(props.node);
@@ -16,10 +17,16 @@ const DefaultNode: Component<{ node: LtnNode }> = (props) => {
     });
   }
 
+  const [_, { setSelection }] = useContext(CanvasContext);
+  function remove() {
+    setSelection(new Map());
+    removeNode(props.node.id);
+  }
+
   return (
     <>
       <p>{props.node.kind}</p>
-      <button onClick={() => removeNode(props.node.id)}>X</button>
+      <button onClick={remove}>X</button>
       <div class="inputs">
         <For each={Object.keys(props.node.inputs || {})}>
           {(key) => (

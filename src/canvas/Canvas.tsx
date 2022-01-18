@@ -1,91 +1,139 @@
-/* --- Utils --- */
-import { PropsWithChildren } from "solid-js";
+import { createContext, createSignal, PropsWithChildren } from "solid-js";
 import { StoreSetter } from "solid-js/store";
-import { withinThreshold } from "../utils";
+import { inRange } from "../utils";
 
-/* --- Canvas --- */
-import type { Camera } from "./camera";
-import type { Focus } from "./focus";
-import type { Selection } from "./selection";
-
-/* --- CSS --- */
 import "./canvas.css";
 
-type Props<T> = {
-  camera: Camera;
-  focus: Focus<T>;
-  selection: Selection<T>;
-  methods: {
-    transform: (id: T, position: StoreSetter<{ x: number; y: number }>) => void;
+function createCanvas() {
+  const [cameraPosition, setCameraPosition] = createSignal({ x: 0, y: 0 });
+  const [cameraScale, setCameraScale] = createSignal(1);
+  const [focus, setFocus] = createSignal(null);
+  const [selection, setSelection] = createSignal<Map<any, HTMLDivElement>>(
+    new Map()
+  );
+  const [dragging, setDragging] = createSignal(false);
+
+  return [
+    {
+      camera: {
+        position: cameraPosition,
+        scale: cameraScale,
+      },
+      focus,
+      selection,
+      dragging,
+    },
+    {
+      setCameraPosition,
+      setCameraScale,
+      setFocus,
+      setSelection,
+      setDragging,
+    },
+  ] as const;
+}
+
+export const CanvasContext = createContext<ReturnType<typeof createCanvas>>(
+  [] as any
+);
+
+type Props = {
+  camera?: {
+    position: { x: number; y: number };
+    scale: number;
   };
+  focus?: [any, HTMLDivElement] | null;
+  selection?: Map<any, HTMLDivElement>;
+  transform?: (
+    node: any,
+    position: StoreSetter<{ x: number; y: number }>
+  ) => void;
 };
 
-function Canvas<T>(props: PropsWithChildren<Props<T>>) {
-  const [{ position }, { transform }] = props.camera;
-  const [focused, { focus }] = props.focus;
-  const [selected, { select }] = props.selection;
+function Canvas<T extends PropsWithChildren<Props>>(props: T) {
+  /* ---- State ---- */
 
-  /* --- Cache --- */
-  let focusedNodeCache: [T, HTMLDivElement] | null;
-  let selectedNodeCache: T[];
+  const store = createCanvas();
+  const [
+    { focus, dragging },
+    { setCameraPosition, setFocus, setSelection, setDragging },
+  ] = store;
+
+  /* ---- Cache ---- */
+
+  let focusedNodeCache: [any, HTMLDivElement] | null;
+  let selectedNodeCache: Map<any, HTMLDivElement>;
   let dragStartPosition: { x: number; y: number };
-  let dragging = false;
 
-  /* --- Mouse Over Event --- */
-  function handleMouseOver(e: MouseEvent) {
-    focus(null);
+  /* ---- Helper ---- */
+
+  function select(focused: [any, HTMLDivElement] | null) {
+    if (focused) return new Map([focused]);
+    return setSelection(new Map());
   }
 
-  /* --- Mouse Down Event --- */
+  function getTransformedNode(
+    position: { x: number; y: number },
+    e: MouseEvent
+  ) {
+    return {
+      x: position.x + e.movementX,
+      y: position.y + e.movementY,
+    };
+  }
+
+  function getTransformedCamera(
+    position: { x: number; y: number },
+    e: MouseEvent
+  ) {
+    return {
+      x: position.x - e.movementX,
+      y: position.y - e.movementY,
+    };
+  }
+
+  /* ---- Events ---- */
+
+  function handleMouseOver(e: MouseEvent) {
+    e.stopPropagation();
+    e.preventDefault();
+    setFocus(null);
+  }
+
   function handleMouseDown(e: MouseEvent) {
     if (e.buttons === 4) e.preventDefault();
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
 
-    dragStartPosition = { x: e.clientX, y: e.clientY };
-
-    focusedNodeCache = focused();
-    if (focusedNodeCache) {
-      select([focusedNodeCache[0]]);
-    } else {
-      select([]);
-    }
-    selectedNodeCache = selected();
+    dragStartPosition = { x: e.x, y: e.y };
+    focusedNodeCache = focus();
+    selectedNodeCache = setSelection(select(focusedNodeCache));
   }
 
-  /* --- Mouse Move Event --- */
   function handleMouseMove(e: MouseEvent) {
-    // Drag only if the mouse has moved more than the threshold
-    // Return early if the mouse hasn't moved
-    if (!dragging) {
+    if (!dragging()) {
       if (
-        !withinThreshold(e.clientX, dragStartPosition.x, 4) ||
-        !withinThreshold(e.clientY, dragStartPosition.y, 4)
+        !inRange(e.x, dragStartPosition.x, 4) ||
+        !inRange(e.y, dragStartPosition.y, 4)
       ) {
-        dragging = true;
+        setDragging(true);
       }
       return;
     }
 
     if (e.buttons === 1) {
-      for (const node of selectedNodeCache) {
-        props.methods.transform(node, ({ x, y }) => {
-          return {
-            x: x + e.movementX,
-            y: y + e.movementY,
-          };
-        });
+      for (const [node] of selectedNodeCache) {
+        props.transform?.(node, (position) => getTransformedNode(position, e));
       }
       return;
     }
 
     if (e.buttons !== 4) return;
-    transform(({ x, y }) => ({ x: x + e.movementX, y: y + e.movementY }));
+    setCameraPosition((position) => getTransformedCamera(position, e));
   }
 
-  /* --- Mouse Up Event --- */
   function handleMouseUp() {
-    dragging = false;
+    setDragging(false);
     window.removeEventListener("mousemove", handleMouseMove);
     window.removeEventListener("mouseup", handleMouseUp);
   }
@@ -96,12 +144,9 @@ function Canvas<T>(props: PropsWithChildren<Props<T>>) {
       onMouseOver={handleMouseOver}
       onMouseDown={handleMouseDown}
     >
-      <div
-        id="origin"
-        style={{ transform: `translate(${position().x}px, ${position().y}px)` }}
-      >
+      <CanvasContext.Provider value={store}>
         {props.children}
-      </div>
+      </CanvasContext.Provider>
     </div>
   );
 }

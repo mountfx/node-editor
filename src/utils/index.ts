@@ -1,4 +1,4 @@
-export function withinThreshold(value: number, targetValue: number, threshold: number) {
+export function inRange(value: number, targetValue: number, threshold: number) {
   return Math.abs(value - targetValue) < threshold;
 }
 

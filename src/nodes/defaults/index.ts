@@ -9,6 +9,7 @@ export const defaultSchema = {
     outputs: {
       sum: 0,
     },
+    component: AddNode,
   },
   subtract: {
     inputs: {
@@ -31,8 +32,4 @@ export const defaultSchema = {
       quotient: 0,
     },
   },
-};
-
-export const defaultNodes = {
-  add: AddNode,
 };

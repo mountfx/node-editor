@@ -1,5 +1,5 @@
 import { createUniqueId } from "solid-js";
-import { createStore, StoreSetter } from "solid-js/store";
+import { createStore, Part, StoreSetter } from "solid-js/store";
 import { LtnSchema, LtnWorld, LtnEntity } from "./types";
 
 export function createWorld<S extends LtnSchema>(schema: S) {
@@ -27,7 +27,6 @@ export function createWorld<S extends LtnSchema>(schema: S) {
     if (!entity.parentId) return;
     const parent = world[entity.parentId];
     const index = parent.children.indexOf(id);
-    parent.children.splice(index, 1);
     setWorld(
       entity.parentId,
       "children",
@@ -44,20 +43,20 @@ export function createWorld<S extends LtnSchema>(schema: S) {
       type: C,
       properties: StoreSetter<Components[C]>
     ) {
-      setWorld(entity.id, "components", type as string, properties);
+      setWorld(entity.id, "components", type as any, properties as any);
     }
 
-    function removeComponent<C extends keyof Components>(type: C) {
-      setWorld(
-        entity.id,
-        "components",
-        type as string,
-        undefined as unknown as Components[C]
-      );
+    function removeComponent<C extends keyof Part<Components>>(
+      type: C extends string ? C : never
+    ) {
+      setWorld(entity.id, "components", type, undefined as unknown as any);
     }
 
     return { setComponent, removeComponent };
   }
 
-  return [world, { addEntity, reparentEntity, removeEntity, useEntity }] as const;
+  return [
+    world,
+    { addEntity, reparentEntity, removeEntity, useEntity },
+  ] as const;
 }

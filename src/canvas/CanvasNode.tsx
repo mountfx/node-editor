@@ -1,30 +1,26 @@
 /* --- Utils --- */
-import { createSignal, PropsWithChildren } from "solid-js";
+import { createSignal, PropsWithChildren, useContext } from "solid-js";
+import { CanvasContext } from "./Canvas";
 
-/* --- Canvas --- */
-import { Focus } from "./focus";
-
-function Node<T>(
-  props: PropsWithChildren<{
-    id: T;
-    focus: Focus<T>;
-    position: { x: number; y: number };
-  }>
+function CanvasNode<T>(
+  props: PropsWithChildren<{ node: T; position?: { x: number; y: number } }>
 ) {
-  const [_, { focus }] = props.focus;
+  const [_, { setFocus }] = useContext(CanvasContext);
   const [ref, setRef] = createSignal<HTMLDivElement | undefined>(undefined);
 
   function handleMouseOver(e: MouseEvent) {
     e.stopPropagation();
     const el = ref();
-    if (el) focus([props.id, el]);
+    if (el) setFocus([props.node, el]);
   }
+
   return (
     <div
       ref={setRef}
       onMouseOver={handleMouseOver}
       style={{
-        transform: `translate(${props.position.x}px, ${props.position.y}px)`,
+        position: "absolute",
+        transform: `translate(${props.position?.x}px, ${props.position?.y}px)`,
       }}
     >
       {props.children}
@@ -32,4 +28,4 @@ function Node<T>(
   );
 }
 
-export default Node;
+export default CanvasNode;
