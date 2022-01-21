@@ -14,8 +14,6 @@ export function createNodes<S extends LtnSchema>(schema: S, initialNodes = {}) {
       })
     );
 
-    // TODO: Move position into "context"
-    // TODO: Add title to "context"
     // TODO: Context potentionally has to be serialized
     const node = {
       id,

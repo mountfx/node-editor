@@ -1,3 +1,9 @@
+// https://dragonman225.js.org/curved-arrows.html
+
+// Overflow on SVG elements to prevent clipping
+// Alternatively put edges in a single svg and have that be the size of the canvas
+// https://codepen.io/AmeliaBR/pen/wJRbBO
+
 import { createSignal } from "solid-js";
 
 const Socket = () => {

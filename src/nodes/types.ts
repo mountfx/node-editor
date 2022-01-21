@@ -1,3 +1,6 @@
+// Typing keys in Object.keys():
+// https://fettblog.eu/typescript-better-object-keys/
+
 import { Component } from "solid-js";
 
 // TODO: Compute types must depend on inputs and outputs
