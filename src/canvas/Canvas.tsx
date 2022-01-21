@@ -19,7 +19,7 @@ type Props = {
   // State
   // TODO: Make these optional and use local state if not provided
   selection: Signal<Map<any, HTMLDivElement>>;
-  focus: Signal<[any, HTMLDivElement] | null>;
+  focus: Signal<[any, HTMLDivElement] | undefined>;
   camera: Signal<{ x: number; y: number; scale: number }>;
 
   // Options
@@ -49,7 +49,7 @@ type Props = {
   onMoveEnd?: (camera: { x: number; y: number; scale: number }) => void;
 };
 
-let focusedCache: [any, HTMLDivElement] | null;
+let focusedCache: [any, HTMLDivElement] | undefined;
 let selectionCache: Map<any, HTMLDivElement>;
 
 export const CanvasContext = createContext<Props>({} as any);
@@ -60,7 +60,7 @@ function Canvas(props: PropsWithChildren<Props>) {
   const [camera, setCamera] = props.camera;
   const [dragging, setDragging] = createSignal(false);
 
-  function select(focused: [any, HTMLDivElement] | null) {
+  function select(focused: [any, HTMLDivElement] | undefined) {
     if (focused) return new Map([focused]);
     return setSelection(new Map());
   }
@@ -68,7 +68,7 @@ function Canvas(props: PropsWithChildren<Props>) {
   function handleMouseOver(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
-    setFocus(null);
+    setFocus(undefined);
   }
 
   function handleMouseDown(event: MouseEvent) {

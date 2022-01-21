@@ -29,7 +29,7 @@ export const [nodes, { addNode, removeNode, useNode }] = createNodes({
 /* --- Global State --- */
 
 const selection = createSignal<Map<any, HTMLDivElement>>(new Map([]));
-const focus = createSignal<[any, HTMLDivElement] | null>(null);
+const focus = createSignal<[any, HTMLDivElement] | undefined>(undefined);
 const camera = createSignal<{ x: number; y: number; scale: number }>({
   x: 0,
   y: 0,
