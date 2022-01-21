@@ -57,13 +57,15 @@ const App: Component = () => {
         focus={focus}
         transformNode={(node, position) => useNode(node).setContext("position", position)}
       >
-        <For each={Object.values(nodes)}>
-          {(node) => (
-            <CanvasNode node={node} position={node.context?.position}>
-              <Node node={node} schema={{ ...defaultSchema }} />
-            </CanvasNode>
-          )}
-        </For>
+        <Camera>
+          <For each={Object.values(nodes)}>
+            {(node) => (
+              <CanvasNode node={node} position={node.context?.position}>
+                <Node node={node} schema={{ ...defaultSchema }} />
+              </CanvasNode>
+            )}
+          </For>
+        </Camera>
       </Canvas>
     </>
   );
