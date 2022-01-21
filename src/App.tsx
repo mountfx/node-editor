@@ -1,11 +1,10 @@
 /* --- Utils --- */
-import { Component, For } from "solid-js";
+import { Component, createSignal, For } from "solid-js";
 
 /* --- Nodes --- */
 import { createNodes } from "./nodes";
 import { defaultSchema } from "./nodes/defaults";
 import Node from "./nodes/Node";
-import type { LtnNode } from "./nodes/types";
 
 /* --- Canvas --- */
 import { Canvas, CanvasNode, Camera, SelectOverlay } from "./canvas";
@@ -27,6 +26,16 @@ export const [nodes, { addNode, removeNode, useNode }] = createNodes({
   ...defaultSchema,
 });
 
+/* --- Global State --- */
+
+const selection = createSignal<Map<any, HTMLDivElement>>(new Map([]));
+const focus = createSignal<[any, HTMLDivElement] | null>(null);
+const camera = createSignal<{ x: number; y: number; scale: number }>({
+  x: 0,
+  y: 0,
+  scale: 1,
+});
+
 const App: Component = () => {
   return (
     <>
@@ -43,20 +52,18 @@ const App: Component = () => {
         <button onClick={() => addNode("divide")}>Add Divide Node</button>
       </div>
       <Canvas
-        transform={(node, position) =>
-          useNode<LtnNode>(node).setContext("position", position)
-        }
+        camera={camera}
+        selection={selection}
+        focus={focus}
+        transformNode={(node, position) => useNode(node).setContext("position", position)}
       >
-        <Camera>
-          <For each={Object.values(nodes)}>
-            {(node) => (
-              <CanvasNode node={node} position={node.context?.position}>
-                <Node node={node} schema={{ ...defaultSchema }} />
-              </CanvasNode>
-            )}
-          </For>
-        </Camera>
-        <SelectOverlay />
+        <For each={Object.values(nodes)}>
+          {(node) => (
+            <CanvasNode node={node} position={node.context?.position}>
+              <Node node={node} schema={{ ...defaultSchema }} />
+            </CanvasNode>
+          )}
+        </For>
       </Canvas>
     </>
   );

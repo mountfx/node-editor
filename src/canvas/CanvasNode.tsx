@@ -1,17 +1,23 @@
-/* --- Utils --- */
 import { createSignal, PropsWithChildren, useContext } from "solid-js";
 import { CanvasContext } from "./Canvas";
 
-function CanvasNode<T>(
-  props: PropsWithChildren<{ node: T; position?: { x: number; y: number } }>
+function CanvasNode<T = any>(
+  props: PropsWithChildren<{ node: T; position: { x: number; y: number } }>
 ) {
-  const [_, { setFocus }] = useContext(CanvasContext);
-  const [ref, setRef] = createSignal<HTMLDivElement | undefined>(undefined);
+  const {
+    focus: [_, setFocus],
+    onNodeMouseOver,
+  } = useContext(CanvasContext);
 
-  function handleMouseOver(e: MouseEvent) {
-    e.stopPropagation();
+  const [ref, setRef] = createSignal<HTMLDivElement>();
+
+  function handleMouseOver(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
     const el = ref();
-    if (el) setFocus([props.node, el]);
+    if (!el) return;
+    setFocus([props.node, el]);
+    onNodeMouseOver?.(props.node, event);
   }
 
   return (
