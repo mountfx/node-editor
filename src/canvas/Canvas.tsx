@@ -9,6 +9,9 @@
 // https://www.tldraw.com/
 // https://github.com/tldraw/tldraw
 
+// https://github.com/tldraw/tldraw/blob/dd1fb7387699a74694fb57394a09c7ed9772850d/packages/core/src/hooks/useCanvasEvents.tsx#L4
+
+
 import { createContext, createSignal, PropsWithChildren } from "solid-js";
 import { StoreSetter } from "solid-js/store";
 import { Signal } from "solid-js/types/reactive/signal";
@@ -25,23 +28,23 @@ type Props = {
   // Options
   multiSelect?: boolean;
 
-  // Mouse Events
-  onMousePress?: (event: MouseEvent) => void;
-  onMouseDragStart?: (event: MouseEvent) => void;
-  onMouseRelease?: (event: MouseEvent) => void;
+  // Pointer Events
+  onPointerPress?: (event: PointerEvent) => void;
+  onPointerDragStart?: (event: PointerEvent) => void;
+  onPointerRelease?: (event: PointerEvent) => void;
 
   // Node Events
-  onNodeMouseOver?: (node: any, event: MouseEvent) => void;
-  onNodeDragStart?: (node: any, event: MouseEvent) => void;
-  onNodeDragEnd?: (node: any, event: MouseEvent) => void;
+  onNodePointerOver?: (node: any, event: PointerEvent) => void;
+  onNodeDragStart?: (node: any, event: PointerEvent) => void;
+  onNodeDragEnd?: (node: any, event: PointerEvent) => void;
 
   transformNode?: (node: any, position: StoreSetter<{ x: number; y: number }>) => void;
 
   // Selection Events
   onSelectionChange?: (nodes: any) => void;
-  onSelectionDragStart?: (nodes: any, event: MouseEvent) => void;
-  onSelectionDrag?: (nodes: any, event: MouseEvent) => void;
-  onSelectionDragEnd?: (nodes: any, event: MouseEvent) => void;
+  onSelectionDragStart?: (nodes: any, event: PointerEvent) => void;
+  onSelectionDrag?: (nodes: any, event: PointerEvent) => void;
+  onSelectionDragEnd?: (nodes: any, event: PointerEvent) => void;
 
   //  Camera Events
   onMoveStart?: (camera: { x: number; y: number; scale: number }) => void;
@@ -65,24 +68,24 @@ function Canvas(props: PropsWithChildren<Props>) {
     return setSelection(new Map());
   }
 
-  function handleMouseOver(event: MouseEvent) {
+  function handlePointerOver(event: PointerEvent) {
     event.preventDefault();
     event.stopPropagation();
     setFocus(undefined);
   }
 
-  function handleMouseDown(event: MouseEvent) {
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+  function handlePointerDown(event: PointerEvent) {
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
 
     focusedCache = focus();
     selectionCache = setSelection(select(focusedCache));
   }
 
-  function handleMouseMove(event: MouseEvent) {
+  function handlePointerMove(event: PointerEvent) {
     if (!dragging()) {
       setDragging(true);
-      props.onMouseDragStart?.(event);
+      props.onPointerDragStart?.(event);
       return;
     }
 
@@ -107,12 +110,12 @@ function Canvas(props: PropsWithChildren<Props>) {
     }
   }
 
-  function handleMouseUp(event: MouseEvent) {
-    window.removeEventListener("mousemove", handleMouseMove);
-    window.removeEventListener("mouseup", handleMouseUp);
+  function handlePointerUp(event: PointerEvent) {
+    window.removeEventListener("pointermove", handlePointerMove);
+    window.removeEventListener("pointerup", handlePointerUp);
 
     setDragging(false);
-    props.onMouseRelease?.(event);
+    props.onPointerRelease?.(event);
 
     if (!selectionCache) return;
     props.onSelectionDragEnd?.(selectionCache, event);
@@ -121,8 +124,8 @@ function Canvas(props: PropsWithChildren<Props>) {
   return (
     <div
       id="canvas"
-      onMouseOver={handleMouseOver}
-      onMouseDown={handleMouseDown}
+      onPointerOver={handlePointerOver}
+      onPointerDown={handlePointerDown}
     >
       <CanvasContext.Provider value={props}>
         {props.children}

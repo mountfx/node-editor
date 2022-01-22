@@ -1,29 +1,31 @@
 import { createSignal, PropsWithChildren, useContext } from "solid-js";
 import { CanvasContext } from "./Canvas";
 
+// TODO: Events should be handled by the parent component
+
 function CanvasNode<T = any>(
   props: PropsWithChildren<{ node: T; position: { x: number; y: number } }>
 ) {
   const {
     focus: [_, setFocus],
-    onNodeMouseOver,
+    onNodePointerOver,
   } = useContext(CanvasContext);
 
   const [ref, setRef] = createSignal<HTMLDivElement>();
-
-  function handleMouseOver(event: MouseEvent) {
+  
+  function handlePointerOver(event: PointerEvent) {
     event.preventDefault();
     event.stopPropagation();
     const el = ref();
     if (!el) return;
     setFocus([props.node, el]);
-    onNodeMouseOver?.(props.node, event);
+    onNodePointerOver?.(props.node, event);
   }
 
   return (
     <div
       ref={setRef}
-      onMouseOver={handleMouseOver}
+      onPointerOver={handlePointerOver}
       style={{
         position: "absolute",
         transform: `translate(${props.position?.x}px, ${props.position?.y}px)`,
