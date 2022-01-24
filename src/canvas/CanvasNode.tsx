@@ -6,20 +6,16 @@ import { CanvasContext } from "./Canvas";
 function CanvasNode<T = any>(
   props: PropsWithChildren<{ node: T; position: { x: number; y: number } }>
 ) {
-  const {
-    focus: [_, setFocus],
-    onNodePointerOver,
-  } = useContext(CanvasContext);
+  const [{ selection, pressed }, { setFocus }] = useContext(CanvasContext);
 
   const [ref, setRef] = createSignal<HTMLDivElement>();
-  
+
   function handlePointerOver(event: PointerEvent) {
     event.preventDefault();
     event.stopPropagation();
     const el = ref();
     if (!el) return;
     setFocus([props.node, el]);
-    onNodePointerOver?.(props.node, event);
   }
 
   return (
@@ -29,6 +25,10 @@ function CanvasNode<T = any>(
       style={{
         position: "absolute",
         transform: `translate(${props.position?.x}px, ${props.position?.y}px)`,
+        "pointer-events":
+          pressed() && selection().has(props.node)
+            ? "none"
+            : "inherit",
       }}
     >
       {props.children}

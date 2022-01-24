@@ -11,57 +11,50 @@
 
 // https://github.com/tldraw/tldraw/blob/dd1fb7387699a74694fb57394a09c7ed9772850d/packages/core/src/hooks/useCanvasEvents.tsx#L4
 
-
 import { createContext, createSignal, PropsWithChildren } from "solid-js";
 import { StoreSetter } from "solid-js/store";
 import { Signal } from "solid-js/types/reactive/signal";
 
 import "./canvas.css";
 
+function createCanvas(
+  initialSelection?: Signal<Map<any, HTMLDivElement>>,
+  initialFocus?: Signal<[any, HTMLDivElement] | undefined>,
+  initialOrigin?: Signal<{ x: number; y: number; scale: number }>
+) {
+  const [selection, setSelection] = initialSelection || createSignal(new Map());
+  const [focus, setFocus] = initialFocus || createSignal(undefined);
+  const [origin, setOrigin] =
+    initialOrigin || createSignal({ x: 0, y: 0, scale: 1 });
+  const [pressed, setPressed] = createSignal(false);
+  const [dragging, setDragging] = createSignal(false);
+  return [
+    { selection, focus, origin, pressed, dragging },
+    { setSelection, setFocus, setOrigin, setPressed, setDragging },
+  ] as const;
+}
+
 type Props = {
   // State
-  // TODO: Make these optional and use local state if not provided
-  selection: Signal<Map<any, HTMLDivElement>>;
-  focus: Signal<[any, HTMLDivElement] | undefined>;
-  camera: Signal<{ x: number; y: number; scale: number }>;
+  selection?: Signal<Map<any, HTMLDivElement>>;
+  focus?: Signal<[any, HTMLDivElement] | undefined>;
+  camera?: Signal<{ x: number; y: number; scale: number }>;
 
-  // Options
-  multiSelect?: boolean;
-
-  // Pointer Events
-  onPointerPress?: (event: PointerEvent) => void;
-  onPointerDragStart?: (event: PointerEvent) => void;
-  onPointerRelease?: (event: PointerEvent) => void;
-
-  // Node Events
-  onNodePointerOver?: (node: any, event: PointerEvent) => void;
-  onNodeDragStart?: (node: any, event: PointerEvent) => void;
-  onNodeDragEnd?: (node: any, event: PointerEvent) => void;
-
-  transformNode?: (node: any, position: StoreSetter<{ x: number; y: number }>) => void;
-
-  // Selection Events
-  onSelectionChange?: (nodes: any) => void;
-  onSelectionDragStart?: (nodes: any, event: PointerEvent) => void;
-  onSelectionDrag?: (nodes: any, event: PointerEvent) => void;
-  onSelectionDragEnd?: (nodes: any, event: PointerEvent) => void;
-
-  //  Camera Events
-  onMoveStart?: (camera: { x: number; y: number; scale: number }) => void;
-  onMove?: (camera: { x: number; y: number; scale: number }) => void;
-  onMoveEnd?: (camera: { x: number; y: number; scale: number }) => void;
+  // Actions
+  transformNode?: (
+    node: any,
+    position: StoreSetter<{ x: number; y: number }>
+  ) => void;
 };
 
 let focusedCache: [any, HTMLDivElement] | undefined;
 let selectionCache: Map<any, HTMLDivElement>;
 
-export const CanvasContext = createContext<Props>({} as any);
+export const CanvasContext = createContext<ReturnType<typeof createCanvas>>([] as any);
 
 function Canvas(props: PropsWithChildren<Props>) {
-  const [_selection, setSelection] = props.selection;
-  const [focus, setFocus] = props.focus;
-  const [camera, setCamera] = props.camera;
-  const [dragging, setDragging] = createSignal(false);
+  const canvas = createCanvas(props.selection, props.focus, props.camera);
+  const [{ focus, dragging }, { setOrigin, setFocus, setSelection, setDragging }] = canvas;
 
   function select(focused: [any, HTMLDivElement] | undefined) {
     if (focused) return new Map([focused]);
@@ -85,14 +78,12 @@ function Canvas(props: PropsWithChildren<Props>) {
   function handlePointerMove(event: PointerEvent) {
     if (!dragging()) {
       setDragging(true);
-      props.onPointerDragStart?.(event);
       return;
     }
 
     switch (event.buttons) {
       case 1:
         if (!selectionCache) return;
-        props.onSelectionDrag?.(selectionCache, event);
         for (const [node] of selectionCache) {
           props.transformNode?.(node, (position) => ({
             x: position.x + event.movementX,
@@ -101,12 +92,11 @@ function Canvas(props: PropsWithChildren<Props>) {
         }
         return;
       case 4:
-        setCamera((c) => ({
-          x: c.x + event.movementX,
-          y: c.y + event.movementY,
-          scale: c.scale,
+        setOrigin((o) => ({
+          x: o.x + event.movementX,
+          y: o.y + event.movementY,
+          scale: o.scale,
         }));
-        props.onMove?.(camera());
     }
   }
 
@@ -115,10 +105,8 @@ function Canvas(props: PropsWithChildren<Props>) {
     window.removeEventListener("pointerup", handlePointerUp);
 
     setDragging(false);
-    props.onPointerRelease?.(event);
 
     if (!selectionCache) return;
-    props.onSelectionDragEnd?.(selectionCache, event);
   }
 
   return (
@@ -127,7 +115,7 @@ function Canvas(props: PropsWithChildren<Props>) {
       onPointerOver={handlePointerOver}
       onPointerDown={handlePointerDown}
     >
-      <CanvasContext.Provider value={props}>
+      <CanvasContext.Provider value={canvas}>
         {props.children}
       </CanvasContext.Provider>
     </div>

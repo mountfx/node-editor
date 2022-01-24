@@ -1,13 +1,13 @@
 import { Component, useContext } from "solid-js";
 import { CanvasContext } from "./Canvas";
 
-const Camera: Component = (props) => {
-  const { camera: [camera] } = useContext(CanvasContext);
+const Origin: Component = (props) => {
+  const [{ origin }] = useContext(CanvasContext);
   return (
     <div
       id="camera"
       style={{
-        transform: `translate(${camera().x}px, ${camera().y}px)`,
+        transform: `translate(${origin().x}px, ${origin().y}px)`,
       }}
     >
       {props.children}
@@ -15,4 +15,4 @@ const Camera: Component = (props) => {
   );
 };
 
-export default Camera;
+export default Origin;

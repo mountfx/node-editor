@@ -1,12 +1,11 @@
-import { Component, For, Show, useContext } from "solid-js";
+import { Component, For, useContext } from "solid-js";
 import { CanvasContext } from "../Canvas";
 
 import "./overlay.css";
 
 const SelectOverlay: Component = () => {
-  const [{ selection, dragging }] = useContext(CanvasContext);
+  const [{ selection }] = useContext(CanvasContext);
   return (
-    <Show when={!dragging()}>
       <For each={[...selection().values()]}>
         {(el) => {
           const bounds = el.getBoundingClientRect();
@@ -22,7 +21,6 @@ const SelectOverlay: Component = () => {
           );
         }}
       </For>
-    </Show>
   );
 };
 
