@@ -8,6 +8,7 @@ import Node from "./nodes/Node";
 
 /* --- Canvas --- */
 import { Canvas, CanvasNode, Origin, SelectOverlay } from "./canvas";
+import Debugger from "./canvas/debugger/Debugger";
 
 // Define nodes by using a schema
 export const [nodes, { addNode, removeNode, useNode }] = createNodes({
@@ -56,6 +57,7 @@ const App: Component = () => {
           </For>
         </Origin>
         <SelectOverlay />
+        <Debugger />
       </Canvas>
     </>
   );

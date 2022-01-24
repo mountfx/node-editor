@@ -1,0 +1,19 @@
+#debugger {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	margin: 24px;
+	display: grid;
+	grid-template-columns: 80px 1fr;
+	gap: 8px 16px;
+}
+
+dd {
+  margin: 0;
+  text-align: right;
+  font-weight: var(--ui-font-weight-bold);
+}
+
+dt {
+  text-align: left;
+}

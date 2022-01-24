@@ -98,10 +98,10 @@ function Canvas(props: PropsWithChildren<Props>) {
       case 1:
         if (!selectionCache) return;
         for (const [node] of selectionCache) {
-          props.transformNode?.(node, (position) => ({
+          props.transformNode?.(node, {
             x: event.clientX - focusedCacheRect.x,
             y: event.clientY - focusedCacheRect.y,
-          }));
+          });
         }
         return;
       case 4:
