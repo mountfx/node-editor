@@ -11,21 +11,23 @@
 
 // https://github.com/tldraw/tldraw/blob/dd1fb7387699a74694fb57394a09c7ed9772850d/packages/core/src/hooks/useCanvasEvents.tsx#L4
 
-import { createContext, createSignal, PropsWithChildren } from "solid-js";
+import { createContext, createSignal, PropsWithChildren, createEffect } from "solid-js";
 import { StoreSetter } from "solid-js/store";
 import { Signal } from "solid-js/types/reactive/signal";
 
 import "./canvas.css";
 
 function createCanvas(
-  initialSelection?: Signal<Map<any, HTMLDivElement>>,
-  initialFocus?: Signal<[any, HTMLDivElement] | undefined>,
-  initialOrigin?: Signal<{ x: number; y: number; scale: number }>
+  initialOrigin?: Signal<{ x: number; y: number; scale: number }>,
+  initialSelection?: Signal<Map<any, HTMLDivElement>>
 ) {
-  const [selection, setSelection] = initialSelection || createSignal(new Map());
-  const [focus, setFocus] = initialFocus || createSignal(undefined);
   const [origin, setOrigin] =
     initialOrigin || createSignal({ x: 0, y: 0, scale: 1 });
+  const [selection, setSelection] =
+    initialSelection || createSignal<Map<any, HTMLDivElement>>(new Map());
+  const [focus, setFocus] = createSignal<[any, HTMLDivElement] | undefined>(
+    undefined
+  );
   const [pressed, setPressed] = createSignal(false);
   const [dragging, setDragging] = createSignal(false);
   return [
@@ -36,9 +38,9 @@ function createCanvas(
 
 type Props = {
   // State
+  origin?: Signal<{ x: number; y: number; scale: number }>;
+  focus?: Signal<[any, HTMLDivElement]>;
   selection?: Signal<Map<any, HTMLDivElement>>;
-  focus?: Signal<[any, HTMLDivElement] | undefined>;
-  camera?: Signal<{ x: number; y: number; scale: number }>;
 
   // Actions
   transformNode?: (
@@ -48,13 +50,19 @@ type Props = {
 };
 
 let focusedCache: [any, HTMLDivElement] | undefined;
+let focusedCacheRect: { x: number; y: number };
 let selectionCache: Map<any, HTMLDivElement>;
 
-export const CanvasContext = createContext<ReturnType<typeof createCanvas>>([] as any);
+export const CanvasContext = createContext<ReturnType<typeof createCanvas>>(
+  [] as any
+);
 
 function Canvas(props: PropsWithChildren<Props>) {
-  const canvas = createCanvas(props.selection, props.focus, props.camera);
-  const [{ focus, dragging }, { setOrigin, setFocus, setSelection, setDragging }] = canvas;
+  const canvas = createCanvas(props.origin, props.selection);
+  const [
+    { focus, dragging },
+    { setOrigin, setFocus, setSelection, setPressed, setDragging },
+  ] = canvas;
 
   function select(focused: [any, HTMLDivElement] | undefined) {
     if (focused) return new Map([focused]);
@@ -71,8 +79,13 @@ function Canvas(props: PropsWithChildren<Props>) {
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerup", handlePointerUp);
 
+    setPressed(true);
     focusedCache = focus();
     selectionCache = setSelection(select(focusedCache));
+
+    if (!focusedCache) return;
+    const rect = focusedCache[1].getBoundingClientRect();
+    focusedCacheRect = { x: event.x - rect.x, y: event.y - rect.y };
   }
 
   function handlePointerMove(event: PointerEvent) {
@@ -86,8 +99,8 @@ function Canvas(props: PropsWithChildren<Props>) {
         if (!selectionCache) return;
         for (const [node] of selectionCache) {
           props.transformNode?.(node, (position) => ({
-            x: position.x + event.movementX,
-            y: position.y + event.movementY,
+            x: event.clientX - focusedCacheRect.x,
+            y: event.clientY - focusedCacheRect.y,
           }));
         }
         return;
@@ -104,6 +117,7 @@ function Canvas(props: PropsWithChildren<Props>) {
     window.removeEventListener("pointermove", handlePointerMove);
     window.removeEventListener("pointerup", handlePointerUp);
 
+    setPressed(false);
     setDragging(false);
 
     if (!selectionCache) return;

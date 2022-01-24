@@ -1,8 +1,6 @@
 import { createSignal, PropsWithChildren, useContext } from "solid-js";
 import { CanvasContext } from "./Canvas";
 
-// TODO: Events should be handled by the parent component
-
 function CanvasNode<T = any>(
   props: PropsWithChildren<{ node: T; position: { x: number; y: number } }>
 ) {
@@ -21,7 +19,8 @@ function CanvasNode<T = any>(
   return (
     <div
       ref={setRef}
-      onPointerOver={handlePointerOver}
+      onPointerOver={(e) => e.stopPropagation()}
+      onPointerEnter={handlePointerOver}
       style={{
         position: "absolute",
         transform: `translate(${props.position?.x}px, ${props.position?.y}px)`,
