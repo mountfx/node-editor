@@ -28,11 +28,10 @@ function createCanvas(
   const [focus, setFocus] = createSignal<[any, HTMLDivElement] | undefined>(
     undefined
   );
-  const [pressed, setPressed] = createSignal(false);
-  const [dragging, setDragging] = createSignal(false);
+  const [state, setState] = createSignal<"IDLE" | "PRESSING" | "DRAGGING">("IDLE");
   return [
-    { selection, focus, origin, pressed, dragging },
-    { setSelection, setFocus, setOrigin, setPressed, setDragging },
+    { state, selection, focus, origin },
+    { setState, setSelection, setFocus, setOrigin },
   ] as const;
 }
 
@@ -50,7 +49,8 @@ type Props = {
 };
 
 let focusedCache: [any, HTMLDivElement] | undefined;
-let focusedCacheRect: { x: number; y: number };
+let focusedCachePosition: { x: number; y: number };
+let parentCachePosition: { x: number; y: number };
 let selectionCache: Map<any, HTMLDivElement>;
 
 export const CanvasContext = createContext<ReturnType<typeof createCanvas>>(
@@ -60,8 +60,8 @@ export const CanvasContext = createContext<ReturnType<typeof createCanvas>>(
 function Canvas(props: PropsWithChildren<Props>) {
   const canvas = createCanvas(props.origin, props.selection);
   const [
-    { focus, dragging },
-    { setOrigin, setFocus, setSelection, setPressed, setDragging },
+    { state, origin, focus },
+    { setState, setOrigin, setFocus, setSelection },
   ] = canvas;
 
   function select(focused: [any, HTMLDivElement] | undefined) {
@@ -79,18 +79,22 @@ function Canvas(props: PropsWithChildren<Props>) {
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerup", handlePointerUp);
 
-    setPressed(true);
+    setState("PRESSING");
     focusedCache = focus();
     selectionCache = setSelection(select(focusedCache));
 
     if (!focusedCache) return;
     const rect = focusedCache[1].getBoundingClientRect();
-    focusedCacheRect = { x: event.x - rect.x, y: event.y - rect.y };
+    focusedCachePosition = { x: event.x - rect.x, y: event.y - rect.y };
   }
 
   function handlePointerMove(event: PointerEvent) {
-    if (!dragging()) {
-      setDragging(true);
+    if (state() !== "DRAGGING") {
+      setState("DRAGGING");
+      // TODO: To generalize this and in order to allow reparenting,
+      // we disable pointer events while pressing the mouse,
+      // This way we can access the node beneath while dragging.
+      parentCachePosition = { x: origin().x, y: origin().y };
       return;
     }
 
@@ -99,8 +103,8 @@ function Canvas(props: PropsWithChildren<Props>) {
         if (!selectionCache) return;
         for (const [node] of selectionCache) {
           props.transformNode?.(node, {
-            x: event.clientX - focusedCacheRect.x,
-            y: event.clientY - focusedCacheRect.y,
+            x: event.clientX - focusedCachePosition.x - parentCachePosition.x,
+            y: event.clientY - focusedCachePosition.y - parentCachePosition.y,
           });
         }
         return;
@@ -117,8 +121,7 @@ function Canvas(props: PropsWithChildren<Props>) {
     window.removeEventListener("pointermove", handlePointerMove);
     window.removeEventListener("pointerup", handlePointerUp);
 
-    setPressed(false);
-    setDragging(false);
+    setState("IDLE");
 
     if (!selectionCache) return;
   }

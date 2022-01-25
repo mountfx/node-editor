@@ -21,12 +21,11 @@ const Debugger = () => {
   window.requestAnimationFrame(fpsLoop);
   onCleanup(() => window.cancelAnimationFrame(fpsLoop()));
 
-  const [{ focus, selection, pressed, dragging }] = useContext(CanvasContext);
+  const [{ state, focus }] = useContext(CanvasContext);
 
   return (
     <dl id="debugger">
-      <dd>{pressed() ? "True" : "False"}</dd><dt>Pressed</dt>
-      <dd>{dragging() ? "True" : "False"}</dd><dt>Dragging</dt>
+      <dd>{state()}</dd><dt>State</dt>
       <dd>{focus()?.[0].id}</dd><dt>Focused Entity</dt>
       <dd>{fps()}</dd><dt>FPS</dt>
   </dl>

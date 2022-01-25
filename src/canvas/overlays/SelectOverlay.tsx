@@ -4,9 +4,9 @@ import { CanvasContext } from "../Canvas";
 import "./overlay.css";
 
 const SelectOverlay: Component = () => {
-  const [{ selection, dragging }] = useContext(CanvasContext);
+  const [{ state, selection }] = useContext(CanvasContext);
   return (
-    <Show when={!dragging()}>
+    <Show when={state() !== "DRAGGING"}>
       <For each={[...selection().values()]}>
         {(el) => {
           const bounds = el.getBoundingClientRect();

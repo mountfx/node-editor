@@ -4,7 +4,7 @@ import { CanvasContext } from "./Canvas";
 function CanvasNode<T = any>(
   props: PropsWithChildren<{ node: T; position: { x: number; y: number } }>
 ) {
-  const [{ selection, pressed }, { setFocus }] = useContext(CanvasContext);
+  const [{ state, selection }, { setFocus }] = useContext(CanvasContext);
 
   const [ref, setRef] = createSignal<HTMLDivElement>();
 
@@ -25,7 +25,7 @@ function CanvasNode<T = any>(
         position: "absolute",
         transform: `translate(${props.position?.x}px, ${props.position?.y}px)`,
         "pointer-events":
-          pressed() && selection().has(props.node)
+          state() !== "IDLE" && selection().has(props.node)
             ? "none"
             : "inherit",
       }}
