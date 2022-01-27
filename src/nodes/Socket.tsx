@@ -4,11 +4,17 @@
 // Alternatively put edges in a single svg and have that be the size of the canvas
 // https://codepen.io/AmeliaBR/pen/wJRbBO
 
-import { createSignal } from "solid-js";
+import { createSignal, useContext } from "solid-js";
+
+// import { CanvasContext } from "../canvas";
 
 const Socket = () => {
   const [x, setX] = createSignal(0);
   const [y, setY] = createSignal(0);
+  
+  // Get Socket offset like this
+  // const [{ focus }] = useContext(CanvasContext);
+  // focus()?.[1].getElementsByClassName("outputs").item(0)?.getBoundingClientRect()
 
   function handleMouseDown(e: MouseEvent) {
     e.preventDefault();
