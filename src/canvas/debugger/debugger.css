@@ -4,7 +4,7 @@
 	left: 0;
 	margin: 24px;
 	display: grid;
-	grid-template-columns: 80px 1fr;
+	grid-template-columns: 112px 1fr;
 	gap: 8px 16px;
 }
 
