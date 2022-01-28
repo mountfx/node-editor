@@ -26,7 +26,7 @@ const Debugger = () => {
   return (
     <dl id="debugger">
       <dd>{state()}</dd><dt>State</dt>
-      <dd>{focus()?.[0].id}</dd><dt>Focused Entity</dt>
+      <dd>{focus()?.[0].id}</dd><dt>Focus</dt>
       <dd>{fps()}</dd><dt>FPS</dt>
   </dl>
   )

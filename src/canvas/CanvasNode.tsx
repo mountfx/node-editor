@@ -25,7 +25,7 @@ function CanvasNode<T = any>(
         position: "absolute",
         transform: `translate(${props.position?.x}px, ${props.position?.y}px)`,
         "pointer-events":
-          state() !== "IDLE" && selection().has(props.node)
+          state() !== "IDLE" && selection().has(props.node) && focus()?.[0] === props.node
             ? "none"
             : "inherit",
       }}

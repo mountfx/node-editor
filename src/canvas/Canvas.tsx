@@ -1,4 +1,4 @@
-// React Flow:
+// React Flow
 // https://reactflow.dev/docs/api/component-props/
 // https://github.com/wbkd/react-flow/blob/main/src/types/index.ts
 
@@ -8,7 +8,6 @@
 // TLDraw
 // https://www.tldraw.com/
 // https://github.com/tldraw/tldraw
-
 // https://github.com/tldraw/tldraw/blob/dd1fb7387699a74694fb57394a09c7ed9772850d/packages/core/src/hooks/useCanvasEvents.tsx#L4
 
 import { createContext, type PropsWithChildren, type Signal } from "solid-js";
@@ -77,9 +76,12 @@ function Canvas(props: PropsWithChildren<Props>) {
       // we disable pointer events while pressing the mouse,
       // This way we can access the node beneath while dragging.
       parentPosition = { x: origin().x, y: origin().y };
-      
       return;
     }
+
+    // Get Socket offset like this
+    // const [{ focus }] = useContext(CanvasContext);
+    // focus()?.[1].getElementsByClassName("outputs").item(0)?.getBoundingClientRect()
 
     switch (event.buttons) {
       case 1:

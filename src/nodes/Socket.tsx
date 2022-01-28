@@ -1,41 +1,40 @@
 // https://dragonman225.js.org/curved-arrows.html
 
+// TODO: This propably needs to be part of the canvas rather than the node
+// or make focusable more generic, so it can be passed down as a callback
+
+import { useContext } from "solid-js";
+import { CanvasContext } from "../canvas";
+
 // Overflow on SVG elements to prevent clipping
 // Alternatively put edges in a single svg and have that be the size of the canvas
 // https://codepen.io/AmeliaBR/pen/wJRbBO
 
-import { createSignal, useContext } from "solid-js";
-
-// import { CanvasContext } from "../canvas";
-
 const Socket = () => {
-  const [x, setX] = createSignal(0);
-  const [y, setY] = createSignal(0);
-  
-  // Get Socket offset like this
-  // const [{ focus }] = useContext(CanvasContext);
-  // focus()?.[1].getElementsByClassName("outputs").item(0)?.getBoundingClientRect()
+  const [{ focus }, { setState, setFocus }] = useContext(CanvasContext);
 
-  function handleMouseDown(e: MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+  function handlePointerDown(event: PointerEvent) {
+    event.stopPropagation();
+    setState("POINTING_SOCKET");
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
   }
 
-  function handleMouseMove(e: MouseEvent) {
-    setX(x => x - e.movementX);
-    setY(y => y + e.movementY);
+  function handlePointerMove(event: PointerEvent) {
+    event.stopPropagation();
+    setState("TRANSLATING");
   }
 
-  function handleMouseUp() {
-    window.removeEventListener("mousemove", handleMouseMove);
-    window.removeEventListener("mouseup", handleMouseUp);
+  function handlePointerUp(event: PointerEvent) {
+    event.stopPropagation();
+    setState("IDLE");
+    window.removeEventListener("pointermove", handlePointerMove);
+    window.removeEventListener("pointerup", handlePointerUp);
   }
 
   return (
     <div
-      onMouseDown={handleMouseDown}
+      onPointerDown={handlePointerDown}
       style={{
         width: "8px",
         height: "8px",
@@ -45,8 +44,8 @@ const Socket = () => {
     >
       <div
         style={{
-          width: x() + "px",
-          height: y() + "px",
+          width: "10px",
+          height: "10px",
           position: "absolute",
           right: 0,
           "pointer-events": "none",

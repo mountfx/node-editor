@@ -17,7 +17,12 @@ function createCanvas(
   );
 
   const [state, setState] = createSignal<
-    "IDLE" | "POINTING_CANVAS" | "POINTING_BOUNDS" | "TRANSLATING" | "BRUSHING"
+    | "IDLE"
+    | "POINTING_CANVAS"
+    | "POINTING_BOUNDS"
+    | "POINTING_SOCKET"
+    | "TRANSLATING"
+    | "BRUSHING"
   >("IDLE");
   return [
     { state, selection, focus, origin },
@@ -25,4 +30,11 @@ function createCanvas(
   ] as const;
 }
 
-export { createCanvas, Canvas, CanvasContext, CanvasNode, Origin, SelectOverlay };
+export {
+  createCanvas,
+  Canvas,
+  CanvasContext,
+  CanvasNode,
+  Origin,
+  SelectOverlay,
+};

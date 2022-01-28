@@ -1,10 +1,10 @@
 /* --- Utils --- */
-import { For, Component, createEffect, useContext } from "solid-js";
+import { For, Component, createEffect } from "solid-js";
 
 // TODO: These methods needs to be passed down via props or by using context.
-import { useNode, removeNode } from "../../App";
+import { useNode } from "../../App";
+import Socket from "../Socket";
 import type { LtnNode } from "../types";
-import { CanvasContext } from "../../canvas";
 
 const DefaultNode: Component<{ node: LtnNode }> = (props) => {
   const { setInput, setOutput, computeOutput } = useNode(props.node);
@@ -31,6 +31,7 @@ const DefaultNode: Component<{ node: LtnNode }> = (props) => {
         <For each={Object.keys(props.node.inputs || {})}>
           {(key) => (
             <div>
+              <Socket />
               <label for={`${props.node.id}_input_${key}`}>{key}</label>
               <input
                 type="number"
