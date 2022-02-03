@@ -1,5 +1,5 @@
 /* --- Utils --- */
-import { Component, For } from "solid-js";
+import { For, type Component } from "solid-js";
 
 /* --- Nodes --- */
 import { createNodes } from "./nodes";
@@ -43,9 +43,11 @@ const App: Component = () => {
         <button onClick={() => addNode("divide")}>Add Divide Node</button>
       </div>
       <Canvas
-        transformNode={(node, position) =>
-          useNode(node).setContext("position", position)
-        }
+        onNodePress={() => console.log("node press")}
+        onNodeDragStart={() => console.log("node drag start")}
+        onNodeDrag={(n, e) => useNode(n).setContext("position", e)}
+        onNodeDragEnd={() => console.log("node drag end")}
+        onNodeRelease={() => console.log("node release")}
       >
         <Origin>
           <For each={Object.values(nodes)}>

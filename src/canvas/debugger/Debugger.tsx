@@ -21,11 +21,11 @@ const Debugger = () => {
   window.requestAnimationFrame(fpsLoop);
   onCleanup(() => window.cancelAnimationFrame(fpsLoop()));
 
-  const [{ state, focus }] = useContext(CanvasContext);
+  const [{ focus }] = useContext(CanvasContext);
 
   return (
     <dl id="debugger">
-      <dd>{state()}</dd><dt>State</dt>
+      {/* <dd>{state()}</dd><dt>State</dt> */}
       <dd>{focus()?.[0].id}</dd><dt>Focus</dt>
       <dd>{fps()}</dd><dt>FPS</dt>
   </dl>

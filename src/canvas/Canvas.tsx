@@ -10,9 +10,13 @@
 // https://github.com/tldraw/tldraw
 // https://github.com/tldraw/tldraw/blob/dd1fb7387699a74694fb57394a09c7ed9772850d/packages/core/src/hooks/useCanvasEvents.tsx#L4
 
-import { createContext, type PropsWithChildren, type Signal } from "solid-js";
-import { type StoreSetter } from "solid-js/store";
-import { createCanvas } from ".";
+import {
+  createContext,
+  createSignal,
+  type PropsWithChildren,
+  type Signal,
+} from "solid-js";
+import { getRelativePosition } from "../utils";
 
 import "./canvas.css";
 
@@ -23,34 +27,39 @@ type Props = {
   focus?: Signal<[any, HTMLDivElement]>;
   selection?: Signal<Map<any, HTMLDivElement>>;
 
+  // Events
+  onPointerOver?: (event: PointerEvent) => void;
+  onPointerPress?: (event: PointerEvent) => void;
+  onPointerDragStart?: (event: PointerEvent) => void;
+  onPointerDrag?: (event: PointerEvent, delta: Position) => void;
+  onPointerDragEnd?: (event: PointerEvent) => void;
+  onPointerRelease?: (event: PointerEvent) => void;
+
+  onNodePress?: (node: any, event: PointerEvent) => void;
+  onNodeDragStart?: (node: any, event: PointerEvent) => void;
+  onNodeDrag?: (node: any, event: Position) => void;
+  onNodeDragEnd?: (node: any, event: PointerEvent) => void;
+  onNodeRelease?: (node: any, event: PointerEvent) => void;
+
   // Actions
-  transformNode?: (node: any, position: StoreSetter<Position>) => void;
 };
 
-let active: [any, HTMLDivElement] | undefined;
-let activePosition: Position;
-let parentPosition: Position;
-let initialSelection: Map<any, HTMLDivElement>;
+let relativeStartPosition: Position;
+let absoluteStartPosition: Position;
+let dragging = false;
+let focused: [any, HTMLDivElement] | undefined;
 
-export const CanvasContext = createContext<ReturnType<typeof createCanvas>>(
-  [] as any
-);
+export const CanvasContext = createContext([] as any);
 
 function Canvas(props: PropsWithChildren<Props>) {
-  const canvas = createCanvas(props.origin, props.selection);
-  const [
-    { state, origin, focus },
-    { setState, setOrigin, setFocus, setSelection },
-  ] = canvas;
-
-  function select(focused: [any, HTMLDivElement] | undefined) {
-    if (focused) return new Map([focused]);
-    return setSelection(new Map());
-  }
+  const [focus, setFocus] = createSignal<[any, HTMLDivElement] | undefined>(
+    undefined
+  );
 
   function handlePointerOver(event: PointerEvent) {
     event.preventDefault();
     event.stopPropagation();
+    props.onPointerOver?.(event);
     setFocus(undefined);
   }
 
@@ -58,54 +67,58 @@ function Canvas(props: PropsWithChildren<Props>) {
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerup", handlePointerUp);
 
-    active = focus();
-    initialSelection = setSelection(select(active));
+    absoluteStartPosition = { x: event.x, y: event.y };
+    props.onPointerPress?.(event);
 
-    active ? setState("POINTING_BOUNDS") : setState("POINTING_CANVAS");
-
-    if (!active) return;
-    const rect = active[1].getBoundingClientRect();
-    activePosition = { x: event.x - rect.x, y: event.y - rect.y };
+    focused = focus();
+    if (!focused) return;
+    const [node, ref] = focused;
+    props.onNodePress?.(node, event);
+    const rect = ref.getBoundingClientRect();
+    relativeStartPosition = { x: event.x - rect.x, y: event.y - rect.y };
   }
 
   function handlePointerMove(event: PointerEvent) {
-    if (state() !== "TRANSLATING") {
-      setState("TRANSLATING");
-
-      // TODO: To generalize this and in order to allow reparenting,
-      // we disable pointer events while pressing the mouse,
-      // This way we can access the node beneath while dragging.
-      parentPosition = { x: origin().x, y: origin().y };
-      return;
+    if (dragging) {
+      if (focused) {
+        const [node] = focused;
+        props.onNodeDrag?.(
+          node,
+          getRelativePosition(event, relativeStartPosition)
+        );
+      }
+      return props.onPointerDrag?.(
+        event,
+        getRelativePosition(event, absoluteStartPosition)
+      );
     }
-
-    // Get Socket offset like this
-    // const [{ focus }] = useContext(CanvasContext);
-    // focus()?.[1].getElementsByClassName("outputs").item(0)?.getBoundingClientRect()
-
-    switch (event.buttons) {
-      case 1:
-        if (!initialSelection) return;
-        for (const [node] of initialSelection) {
-          props.transformNode?.(node, {
-            x: Math.round(event.clientX - activePosition.x - parentPosition.x),
-            y: Math.round(event.clientY - activePosition.y - parentPosition.y),
-          });
-        }
-        return;
-      case 4:
-        setOrigin((o) => ({
-          x: o.x + event.movementX,
-          y: o.y + event.movementY,
-          scale: o.scale,
-        }));
+    dragging = true;
+    props.onPointerDragStart?.(event);
+    if (focused) {
+      const [node] = focused;
+      props.onNodeDragStart?.(node, event);
     }
   }
 
   function handlePointerUp(event: PointerEvent) {
+    if (dragging) {
+      props.onPointerDragEnd?.(event);
+      if (focused) {
+        const [node] = focused;
+        props.onNodeDragEnd?.(node, event);
+      }
+      dragging = false;
+    }
+
+    relativeStartPosition = { x: 0, y: 0 };
+
+    props.onPointerRelease?.(event);
+    if (focused) {
+      const [node] = focused;
+      props.onNodeRelease?.(node, event);
+    }
     window.removeEventListener("pointermove", handlePointerMove);
     window.removeEventListener("pointerup", handlePointerUp);
-    setState("IDLE");
   }
 
   return (
@@ -114,7 +127,7 @@ function Canvas(props: PropsWithChildren<Props>) {
       onPointerOver={handlePointerOver}
       onPointerDown={handlePointerDown}
     >
-      <CanvasContext.Provider value={canvas}>
+      <CanvasContext.Provider value={[{ focus }, { setFocus }]}>
         {props.children}
       </CanvasContext.Provider>
     </div>
