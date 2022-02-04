@@ -13,5 +13,7 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
+    "strictNullChecks": true,
+    "noUncheckedIndexedAccess": true,
   }
 }
