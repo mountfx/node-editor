@@ -1,4 +1,4 @@
-type Position = { x: number; y: number };
+// type Position = { x: number; y: number };
 type Rect = { x: number; y: number; width: number; height: number };
 
 export function inRange(value: number, targetValue: number, threshold: number) {
@@ -18,9 +18,9 @@ export function getBounds(rects: Rect[]): Rect {
   };
 }
 
-export function getRelativePosition(position: Position, relativeTo: Position) {
-  return {
-    x: position.x - relativeTo.x,
-    y: position.y - relativeTo.y,
-  };
-}
+// export function delta(position: Position, relativeTo: Position) {
+//   return {
+//     x: position.x - relativeTo.x,
+//     y: position.y - relativeTo.y,
+//   };
+// }

@@ -9,8 +9,8 @@ export function createNodes<S extends LtnSchema>(schema: S, initialNodes = {}) {
     const id = createUniqueId();
     const io: S[K] = JSON.parse(
       JSON.stringify({
-        inputs: schema[kind].inputs,
-        outputs: schema[kind].outputs,
+        inputs: schema[kind]?.inputs,
+        outputs: schema[kind]?.outputs,
       })
     );
 
@@ -19,7 +19,7 @@ export function createNodes<S extends LtnSchema>(schema: S, initialNodes = {}) {
       id,
       kind,
       context: {
-        title: schema[kind].context?.title || kind,
+        title: schema[kind]?.context?.title || kind,
         position: { x: 0, y: 0 },
       },
       ...io,
@@ -70,9 +70,9 @@ export function createNodes<S extends LtnSchema>(schema: S, initialNodes = {}) {
       return batch(() => {
         if (!node.inputs) return;
         const input = node.inputs[socket as any];
-        if (!input.source) return input.value;
+        if (!input?.source) return input?.value;
         const sourceNode = nodes[input.source.id];
-        if (!sourceNode.outputs) return;
+        if (!sourceNode?.outputs) return;
         if (sourceNode) return sourceNode.outputs[input.source.output];
         setNodes(node.id, "inputs", socket as any, "source", undefined);
         return input.value;
@@ -93,7 +93,7 @@ export function createNodes<S extends LtnSchema>(schema: S, initialNodes = {}) {
     function computeOutput<C extends Compute>(
       output: C extends Compute ? keyof C : never
     ): Outputs[keyof Outputs] {
-      return schema[node.kind].compute?.[output as string](getInputs());
+      return schema[node.kind]?.compute?.[output as string]?.(getInputs());
     }
 
     return {

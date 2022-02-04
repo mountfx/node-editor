@@ -1,42 +1,84 @@
 import { createSignal, useContext, type PropsWithChildren } from "solid-js";
-import { CanvasContext } from "./Canvas";
+import { CanvasContext } from ".";
 
-type Props = {
-  node: any;
-  initialPosition?: { x: number; y: number };
+let pointerDown: PointerEvent;
+let nodeStartPosition: { x: number; y: number };
+let parentPosition: { x: number; y: number };
 
-  onNodePress?: (node: any, position: { x: number; y: number }) => void;
-};
+function getPosition(node: HTMLElement | null | undefined) {
+  return node?.getBoundingClientRect() || { x: 0, y: 0 };
+}
 
 function CanvasNode<T = any>(
   props: PropsWithChildren<{
     node: T;
     position: { x: number; y: number };
+
+    onPress?: (event: PointerEvent) => void;
+    onDragStart?: (event: PointerEvent) => void;
+    onDrag?: (event: PointerEvent, delta: { x: number; y: number }) => void;
+    onDragEnd?: (event: PointerEvent) => void;
+    onRelease?: (event: PointerEvent) => void;
   }>
 ) {
+  const [ref, setRef] = createSignal<HTMLDivElement>();
+  const [dragging, setDragging] = createSignal(false);
   const [_, { setFocus }] = useContext(CanvasContext);
 
-  const [ref, setRef] = createSignal<HTMLDivElement>();
+  function handlePointerEnter(event: PointerEvent) {
+    setFocus(ref());
+  }
 
-  // function handlePointerOver(event: PointerEvent) {
-  //   event.preventDefault();
-  //   event.stopPropagation();
-  //   const el = ref();
-  //   if (!el) return;
-  // }
+  function handlePointerDown(event: PointerEvent) {
+    event.stopImmediatePropagation();
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+
+    pointerDown = event;
+    nodeStartPosition = getPosition(ref());
+    parentPosition = getPosition(ref()?.parentElement);
+
+    props.onPress?.(event);
+  }
+
+  function handlePointerMove(event: PointerEvent) {
+    if (!dragging()) {
+      setDragging(true);
+      return props.onDragStart?.(event);
+    }
+    const delta = {
+      x: event.x - pointerDown.x,
+      y: event.y - pointerDown.y,
+    };
+    return props.onDrag?.(event, {
+      x: nodeStartPosition.x - parentPosition.x + delta.x,
+      y: nodeStartPosition.y - parentPosition.y + delta.y,
+    });
+  }
+
+  function handlePointerUp(event: PointerEvent) {
+    window.removeEventListener("pointermove", handlePointerMove);
+    window.removeEventListener("pointerup", handlePointerUp);
+
+    setDragging((isDragging) => {
+      if (!isDragging) return isDragging;
+      props.onDragEnd?.(event);
+      return false;
+    });
+
+    props.onRelease?.(event);
+  }
 
   return (
     <div
       ref={setRef}
-      onPointerOver={(e) => e.stopPropagation()}
-      onPointerEnter={() => setFocus([props.node, ref()])}
+      onPointerEnter={handlePointerEnter}
+      onPointerDown={handlePointerDown}
       style={{
         position: "absolute",
         transform: `translate(${props.position?.x}px, ${props.position?.y}px)`,
-        // "pointer-events":
-        //   state() !== "IDLE" && selection().has(props.node)
-        //     ? "none"
-        //     : "inherit",
+        "pointer-events": dragging() ? "none" : "inherit",
       }}
     >
       {props.children}

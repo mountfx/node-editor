@@ -10,6 +10,7 @@ function createCanvas(
 ) {
   const [origin, setOrigin] =
     initialOrigin || createSignal({ x: 0, y: 0, scale: 1 });
+  const [draggable, setDraggable] = createSignal(false);
   const [selection, setSelection] =
     initialSelection || createSignal<Map<any, HTMLDivElement>>(new Map());
   const [focus, setFocus] = createSignal<[any, HTMLDivElement] | undefined>(
@@ -25,8 +26,8 @@ function createCanvas(
     | "BRUSHING"
   >("IDLE");
   return [
-    { state, selection, focus, origin },
-    { setState, setSelection, setFocus, setOrigin },
+    { state, selection, focus, origin, draggable },
+    { setState, setSelection, setFocus, setOrigin, setDraggable },
   ] as const;
 }
 

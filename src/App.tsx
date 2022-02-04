@@ -42,17 +42,15 @@ const App: Component = () => {
         </button>
         <button onClick={() => addNode("divide")}>Add Divide Node</button>
       </div>
-      <Canvas
-        onNodePress={() => console.log("node press")}
-        onNodeDragStart={() => console.log("node drag start")}
-        onNodeDrag={(n, e) => useNode(n).setContext("position", e)}
-        onNodeDragEnd={() => console.log("node drag end")}
-        onNodeRelease={() => console.log("node release")}
-      >
+      <Canvas>
         <Origin>
           <For each={Object.values(nodes)}>
             {(node) => (
-              <CanvasNode node={node} position={node.context?.position}>
+              <CanvasNode
+                node={node}
+                position={node.context?.position}
+                onDrag={(e, p) => useNode(node).setContext("position", p)}
+              >
                 <Node node={node} schema={{ ...defaultSchema }} />
               </CanvasNode>
             )}

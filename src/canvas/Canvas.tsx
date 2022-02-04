@@ -10,13 +10,7 @@
 // https://github.com/tldraw/tldraw
 // https://github.com/tldraw/tldraw/blob/dd1fb7387699a74694fb57394a09c7ed9772850d/packages/core/src/hooks/useCanvasEvents.tsx#L4
 
-import {
-  createContext,
-  createSignal,
-  type PropsWithChildren,
-  type Signal,
-} from "solid-js";
-import { getRelativePosition } from "../utils";
+import { createContext, createSignal, type PropsWithChildren, type Signal } from "solid-js";
 
 import "./canvas.css";
 
@@ -28,38 +22,24 @@ type Props = {
   selection?: Signal<Map<any, HTMLDivElement>>;
 
   // Events
-  onPointerOver?: (event: PointerEvent) => void;
-  onPointerPress?: (event: PointerEvent) => void;
-  onPointerDragStart?: (event: PointerEvent) => void;
-  onPointerDrag?: (event: PointerEvent, delta: Position) => void;
-  onPointerDragEnd?: (event: PointerEvent) => void;
-  onPointerRelease?: (event: PointerEvent) => void;
-
-  onNodePress?: (node: any, event: PointerEvent) => void;
-  onNodeDragStart?: (node: any, event: PointerEvent) => void;
-  onNodeDrag?: (node: any, event: Position) => void;
-  onNodeDragEnd?: (node: any, event: PointerEvent) => void;
-  onNodeRelease?: (node: any, event: PointerEvent) => void;
-
-  // Actions
+  onOver?: (event: PointerEvent) => void;
+  onPress?: (event: PointerEvent) => void;
+  onDragStart?: (event: PointerEvent) => void;
+  onDrag?: (event: PointerEvent, delta: Position) => void;
+  onDragEnd?: (event: PointerEvent) => void;
+  onRelease?: (event: PointerEvent) => void;
 };
 
-let relativeStartPosition: Position;
-let absoluteStartPosition: Position;
+let absoluteDragStartPosition: Position;
 let dragging = false;
-let focused: [any, HTMLDivElement] | undefined;
 
 export const CanvasContext = createContext([] as any);
 
 function Canvas(props: PropsWithChildren<Props>) {
-  const [focus, setFocus] = createSignal<[any, HTMLDivElement] | undefined>(
-    undefined
-  );
+  const [focus, setFocus] = createSignal(undefined);
 
   function handlePointerOver(event: PointerEvent) {
-    event.preventDefault();
-    event.stopPropagation();
-    props.onPointerOver?.(event);
+    props.onOver?.(event);
     setFocus(undefined);
   }
 
@@ -67,58 +47,31 @@ function Canvas(props: PropsWithChildren<Props>) {
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerup", handlePointerUp);
 
-    absoluteStartPosition = { x: event.x, y: event.y };
-    props.onPointerPress?.(event);
-
-    focused = focus();
-    if (!focused) return;
-    const [node, ref] = focused;
-    props.onNodePress?.(node, event);
-    const rect = ref.getBoundingClientRect();
-    relativeStartPosition = { x: event.x - rect.x, y: event.y - rect.y };
+    absoluteDragStartPosition = { x: event.x, y: event.y };
+    props.onPress?.(event);
   }
 
   function handlePointerMove(event: PointerEvent) {
     if (dragging) {
-      if (focused) {
-        const [node] = focused;
-        props.onNodeDrag?.(
-          node,
-          getRelativePosition(event, relativeStartPosition)
-        );
-      }
-      return props.onPointerDrag?.(
-        event,
-        getRelativePosition(event, absoluteStartPosition)
-      );
+      const delta = {
+        x: event.x - absoluteDragStartPosition.x,
+        y: event.y - absoluteDragStartPosition.y,
+      };
+      return props.onDrag?.(event, delta);
     }
     dragging = true;
-    props.onPointerDragStart?.(event);
-    if (focused) {
-      const [node] = focused;
-      props.onNodeDragStart?.(node, event);
-    }
+    props.onDragStart?.(event);
   }
 
   function handlePointerUp(event: PointerEvent) {
+    window.removeEventListener("pointermove", handlePointerMove);
+    window.removeEventListener("pointerup", handlePointerUp);
     if (dragging) {
-      props.onPointerDragEnd?.(event);
-      if (focused) {
-        const [node] = focused;
-        props.onNodeDragEnd?.(node, event);
-      }
+      props.onDragEnd?.(event);
       dragging = false;
     }
 
-    relativeStartPosition = { x: 0, y: 0 };
-
-    props.onPointerRelease?.(event);
-    if (focused) {
-      const [node] = focused;
-      props.onNodeRelease?.(node, event);
-    }
-    window.removeEventListener("pointermove", handlePointerMove);
-    window.removeEventListener("pointerup", handlePointerUp);
+    props.onRelease?.(event);
   }
 
   return (
