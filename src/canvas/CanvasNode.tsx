@@ -11,7 +11,6 @@ function getPosition(node: HTMLElement | null | undefined) {
 
 function CanvasNode<T = any>(
   props: PropsWithChildren<{
-    node: T;
     position: { x: number; y: number };
 
     onPress?: (event: PointerEvent) => void;
@@ -25,15 +24,16 @@ function CanvasNode<T = any>(
   const [dragging, setDragging] = createSignal(false);
   const [_, { setFocus }] = useContext(CanvasContext);
 
-  function handlePointerEnter(event: PointerEvent) {
+  function handlePointerOver(event: PointerEvent) {
+    event.stopPropagation();
     setFocus(ref());
   }
 
   function handlePointerDown(event: PointerEvent) {
-    event.stopImmediatePropagation();
+    event.stopPropagation();
 
     window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointerup", handlePointerUp); 
 
     pointerDown = event;
     nodeStartPosition = getPosition(ref());
@@ -73,7 +73,7 @@ function CanvasNode<T = any>(
   return (
     <div
       ref={setRef}
-      onPointerEnter={handlePointerEnter}
+      onPointerOver={handlePointerOver}
       onPointerDown={handlePointerDown}
       style={{
         position: "absolute",

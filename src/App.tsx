@@ -47,7 +47,6 @@ const App: Component = () => {
           <For each={Object.values(nodes)}>
             {(node) => (
               <CanvasNode
-                node={node}
                 position={node.context?.position}
                 onDrag={(e, p) => useNode(node).setContext("position", p)}
               >

@@ -18,7 +18,6 @@ const Socket = () => {
 
   return (
     <CanvasNode
-      node={""}
       position={{ x: position().x, y: position().y }}
       onDrag={(e, p) => setPosition(p)}>
       <div

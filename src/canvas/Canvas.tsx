@@ -10,7 +10,7 @@
 // https://github.com/tldraw/tldraw
 // https://github.com/tldraw/tldraw/blob/dd1fb7387699a74694fb57394a09c7ed9772850d/packages/core/src/hooks/useCanvasEvents.tsx#L4
 
-import { createContext, createSignal, type PropsWithChildren, type Signal } from "solid-js";
+import { createContext, createEffect, createSignal, type PropsWithChildren, type Signal } from "solid-js";
 
 import "./canvas.css";
 
@@ -36,7 +36,9 @@ let dragging = false;
 export const CanvasContext = createContext([] as any);
 
 function Canvas(props: PropsWithChildren<Props>) {
-  const [focus, setFocus] = createSignal(undefined);
+  const [focus, setFocus] = createSignal<HTMLDivElement | undefined>(undefined);
+
+  createEffect(( ) => console.dir(focus()?.innerText));
 
   function handlePointerOver(event: PointerEvent) {
     props.onOver?.(event);
